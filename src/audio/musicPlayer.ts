@@ -92,7 +92,8 @@ export class MusicPlayer {
   setVolume(volume: number): void {
     this.volume = Math.max(0, Math.min(1, volume));
     if (this.masterGain) {
-      setGainValue(this.masterGain, this.volume);
+      // Apply 0.3x multiplier to music volume for better balance
+      setGainValue(this.masterGain, this.volume * 0.3);
     }
   }
 
@@ -120,8 +121,9 @@ export class MusicPlayer {
     this.startTime = getAudioContext().currentTime;
     this.pauseTime = 0;
 
-    // Create master gain
-    this.masterGain = createGainNode(this.volume);
+    // Create master gain with reduced volume for better balance with sound effects
+    // Apply 0.3x multiplier to music volume to prevent it from overpowering effects
+    this.masterGain = createGainNode(this.volume * 0.3);
     connectNodes(this.masterGain, getAudioContext().destination);
 
     this.scheduleNextNotes();
@@ -134,8 +136,11 @@ export class MusicPlayer {
   adjustTempoForLevel(level: number): void {
     if (!this.currentTrack) {return;}
     
-    // Increase tempo by 2% per level, capped at 2x speed
-    const speedMultiplier = Math.min(1 + (level - 1) * 0.02, 2.0);
+    // Increase tempo by 2% per level, capped at 1.5x speed (50% faster max)
+    // This prevents music from becoming unrecognizable at high levels
+    const maxSpeedMultiplier = 1.5;
+    const speedIncreasePerLevel = 0.02;
+    const speedMultiplier = Math.min(1 + (level - 1) * speedIncreasePerLevel, maxSpeedMultiplier);
     const baseTempo = this.currentTrack.tempo;
     
     // Store the adjusted tempo in the track
@@ -224,7 +229,8 @@ export class MusicPlayer {
     
     // Recreate master gain if needed
     if (!this.masterGain) {
-      this.masterGain = createGainNode(this.volume);
+      // Apply 0.3x multiplier to music volume for better balance
+      this.masterGain = createGainNode(this.volume * 0.3);
       connectNodes(this.masterGain, getAudioContext().destination);
     }
     

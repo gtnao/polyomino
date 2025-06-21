@@ -86,7 +86,7 @@ export class SoundManager {
         case 'move': {
           const moveSound = this.soundEffects.get('pieceMove');
           if (moveSound) {
-            playSoundEffect(moveSound, this.volume * 0.3);
+            playSoundEffect(moveSound, this.volume * 0.5);
           }
           break;
         }
@@ -94,7 +94,7 @@ export class SoundManager {
         case 'rotate': {
           const rotateSound = this.soundEffects.get('pieceRotate');
           if (rotateSound) {
-            playSoundEffect(rotateSound, this.volume * 0.4);
+            playSoundEffect(rotateSound, this.volume * 0.6);
           }
           break;
         }
@@ -103,17 +103,17 @@ export class SoundManager {
         case 'place': {
           const placeSound = this.soundEffects.get('piecePlace');
           if (placeSound) {
-            playSoundEffect(placeSound, this.volume * 0.5);
+            playSoundEffect(placeSound, this.volume * 0.7);
           }
           break;
         }
           
         case 'lineClear':
-          playImprovedLineClearSFX(1, this.volume * 0.7);
+          playImprovedLineClearSFX(1, this.volume * 0.9);
           break;
           
         case 'levelUp':
-          playImprovedLevelUpSFX(this.volume * 0.8);
+          playImprovedLevelUpSFX(this.volume * 1.0);
           break;
           
         case 'gameOver':

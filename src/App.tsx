@@ -350,7 +350,7 @@ export const App: React.FC = () => {
     return () => {
       loop.stop();
     };
-  }, [polyominoSize, saveManager, currentHighScore, soundManager, soundEnabled, ghostPieceEnabled, colorSchemeName, particleEffects, musicEnabled, effectVolume, musicVolume, effectsManager, colorScheme]);
+  }, [polyominoSize, saveManager, currentHighScore, soundManager, soundEnabled, ghostPieceEnabled, colorSchemeName, particleEffects, effectVolume, musicVolume, effectsManager, colorScheme]);
 
   // Handle input
   const handleInput = useCallback((action: GameAction) => {
@@ -366,11 +366,13 @@ export const App: React.FC = () => {
       gameLoop.start();
       // Play game music with a small delay to ensure proper initialization
       void soundManager.stopMusic();
-      setTimeout(() => {
-        void soundManager.playGameMusic(gameState?.stats.level || 1);
-      }, 100);
+      if (musicEnabled) {
+        setTimeout(() => {
+          void soundManager.playGameMusic(gameState?.stats.level || 1);
+        }, 100);
+      }
     }
-  }, [gameManager, gameLoop, soundManager, gameState]);
+  }, [gameManager, gameLoop, soundManager, gameState, musicEnabled]);
 
   const pauseGame = useCallback(() => {
     if (gameManager && gameLoop) {
@@ -395,8 +397,15 @@ export const App: React.FC = () => {
       if (!gameLoop.isRunning()) {
         gameLoop.start();
       }
+      // Restart game music if enabled
+      void soundManager.stopMusic();
+      if (musicEnabled) {
+        setTimeout(() => {
+          void soundManager.playGameMusic(1);
+        }, 100);
+      }
     }
-  }, [gameManager, gameLoop]);
+  }, [gameManager, gameLoop, soundManager, musicEnabled]);
 
   const quitGame = useCallback(() => {
     if (gameManager && gameLoop) {
@@ -409,9 +418,8 @@ export const App: React.FC = () => {
       if (newState) {
         setGameState({ ...newState, status: 'ready' });
       }
-      // Switch back to menu music
+      // Stop any playing music
       void soundManager.stopMusic();
-      void soundManager.playMenuMusic();
     }
   }, [gameManager, gameLoop, soundManager]);
 
@@ -1040,6 +1048,39 @@ export const App: React.FC = () => {
                   <span>MAIN MENU</span>
                 </div>
               </button>
+              <button
+                style={{
+                  backgroundColor: colorScheme.colors.ui.button,
+                  color: colorScheme.colors.text,
+                  border: `1px solid ${colorScheme.colors.ui.border}`,
+                  borderRadius: '4px',
+                  padding: '6px 12px',
+                  fontSize: '12px',
+                  fontFamily: 'monospace',
+                  cursor: 'pointer',
+                }}
+                onClick={() => {
+                  const newEnabled = !musicEnabled;
+                  setMusicEnabled(newEnabled);
+                  soundManager.setMusicEnabled(newEnabled);
+                  if (newEnabled && gameState.status === 'playing') {
+                    void soundManager.playGameMusic(gameState.stats.level);
+                  } else {
+                    void soundManager.stopMusic();
+                  }
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = colorScheme.colors.ui.buttonHover;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = colorScheme.colors.ui.button;
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <Icon name={musicEnabled ? 'music' : 'musicOff'} size={14} />
+                  <span>MUSIC {musicEnabled ? 'ON' : 'OFF'}</span>
+                </div>
+              </button>
             </div>
             <KeyBindingsDisplay
               colorScheme={colorScheme}
@@ -1048,15 +1089,24 @@ export const App: React.FC = () => {
           </div>
         }
         fullscreen
+        centerContent
       >
-        <GameCanvas
-          board={gameState.board}
-          currentPiece={gameState.currentPiece}
-          ghostPiece={ghostPieceEnabled ? gameState.ghostPiece : null}
-          cellSize={30}
-          colorScheme={colorScheme}
-          effectsManager={effectsManager}
-        />
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'center',
+          width: '100%',
+          height: '100%'
+        }}>
+          <GameCanvas
+            board={gameState.board}
+            currentPiece={gameState.currentPiece}
+            ghostPiece={ghostPieceEnabled ? gameState.ghostPiece : null}
+            cellSize={30}
+            colorScheme={colorScheme}
+            effectsManager={effectsManager}
+          />
+        </div>
         {gameState.status === 'paused' && (
           <div
             style={{
