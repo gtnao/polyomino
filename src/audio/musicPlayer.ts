@@ -92,8 +92,8 @@ export class MusicPlayer {
   setVolume(volume: number): void {
     this.volume = Math.max(0, Math.min(1, volume));
     if (this.masterGain) {
-      // Apply 0.3x multiplier to music volume for better balance
-      setGainValue(this.masterGain, this.volume * 0.3);
+      // Apply 0.1x multiplier to music volume to prevent distortion
+      setGainValue(this.masterGain, this.volume * 0.1);
     }
   }
 
@@ -121,33 +121,54 @@ export class MusicPlayer {
     this.startTime = getAudioContext().currentTime;
     this.pauseTime = 0;
 
-    // Create master gain with reduced volume for better balance with sound effects
-    // Apply 0.3x multiplier to music volume to prevent it from overpowering effects
-    this.masterGain = createGainNode(this.volume * 0.3);
+    // Create master gain with greatly reduced volume to prevent distortion
+    // Apply 0.1x multiplier to music volume for clean sound
+    this.masterGain = createGainNode(this.volume * 0.1);
     connectNodes(this.masterGain, getAudioContext().destination);
 
     this.scheduleNextNotes();
   }
 
   /**
-   * Adjusts the tempo of the current track based on level
+   * Adjusts the tempo of the current track based on level with smooth transition
    * @param level - Game level (1-99)
    */
-  adjustTempoForLevel(level: number): void {
-    if (!this.currentTrack) {return;}
+  async adjustTempoForLevel(level: number): Promise<void> {
+    if (!this.currentTrack || !this.playing) {return;}
     
-    // Increase tempo by 2% per level, capped at 1.5x speed (50% faster max)
-    // This prevents music from becoming unrecognizable at high levels
+    // Calculate new tempo
     const maxSpeedMultiplier = 1.5;
     const speedIncreasePerLevel = 0.02;
     const speedMultiplier = Math.min(1 + (level - 1) * speedIncreasePerLevel, maxSpeedMultiplier);
-    const baseTempo = this.currentTrack.tempo;
     
-    // Store the adjusted tempo in the track
-    this.currentTrack = {
+    // Get the base tempo (without any multiplier)
+    const originalTempo = Math.round(this.currentTrack.tempo / (1 + ((level - 1) - 1) * speedIncreasePerLevel));
+    const newTempo = Math.round(originalTempo * speedMultiplier);
+    
+    // If tempo hasn't changed significantly, don't restart
+    if (Math.abs(this.currentTrack.tempo - newTempo) < 5) {
+      return;
+    }
+    
+    // Store current playback position
+    const currentTime = getAudioContext().currentTime - this.startTime;
+    const beatPosition = (currentTime * this.currentTrack.tempo) / 60;
+    
+    // Create new track with adjusted tempo
+    const adjustedTrack = {
       ...this.currentTrack,
-      tempo: Math.round(baseTempo * speedMultiplier)
+      tempo: newTempo
     };
+    
+    // Fade out current music quickly
+    await this.fadeOut(200);
+    
+    // Play the track from approximately the same beat position
+    this.play(adjustedTrack);
+    
+    // Adjust start time to maintain beat continuity
+    const newTimePosition = (beatPosition * 60) / newTempo;
+    this.startTime = getAudioContext().currentTime - newTimePosition;
   }
 
   /**
@@ -229,8 +250,8 @@ export class MusicPlayer {
     
     // Recreate master gain if needed
     if (!this.masterGain) {
-      // Apply 0.3x multiplier to music volume for better balance
-      this.masterGain = createGainNode(this.volume * 0.3);
+      // Apply 0.1x multiplier to music volume to prevent distortion
+      this.masterGain = createGainNode(this.volume * 0.1);
       connectNodes(this.masterGain, getAudioContext().destination);
     }
     

@@ -169,29 +169,27 @@ export class VisualEffectsManager {
       const gradient = ctx.createLinearGradient(0, lineY * cellSize, boardWidth * cellSize, lineY * cellSize);
       const colors = colorScheme.colors.effects.lineClear;
       
-      // Animate gradient position
-      const offset = progress;
-      const stop1 = Math.max(0, Math.min(1, offset - 0.3));
-      const stop2 = Math.max(0, Math.min(1, offset - 0.1));
-      const stop3 = Math.max(0, Math.min(1, offset + 0.1));
-      const stop4 = Math.max(0, Math.min(1, offset + 0.3));
+      // Animate gradient position (sweep from left to right)
+      const sweepProgress = progress * 1.4 - 0.2; // Start before 0 and end after 1
+      const gradientWidth = 0.3;
       
-      // Ensure stops are in increasing order
-      if (stop1 < stop2 && stop2 < stop3 && stop3 < stop4) {
-        gradient.addColorStop(stop1, 'transparent');
-        gradient.addColorStop(stop2, colors[0]!);
-        gradient.addColorStop(stop3, colors[1]!);
-        gradient.addColorStop(stop4, 'transparent');
-      } else {
-        // Fallback to simple gradient
-        gradient.addColorStop(0, colors[0]!);
-        gradient.addColorStop(0.5, colors[1]!);
-        gradient.addColorStop(1, colors[0]!);
-      }
+      // Calculate gradient stops with smoother animation
+      const stop1 = Math.max(0, Math.min(1, sweepProgress - gradientWidth));
+      const stop2 = Math.max(0, Math.min(1, sweepProgress - gradientWidth * 0.5));
+      const stop3 = Math.max(0, Math.min(1, sweepProgress + gradientWidth * 0.5));
+      const stop4 = Math.max(0, Math.min(1, sweepProgress + gradientWidth));
       
-      // Apply flash with pulsing alpha
-      const alpha = Math.sin(progress * Math.PI) * 0.9;
-      ctx.globalAlpha = alpha;
+      // Create gradient with proper stops
+      gradient.addColorStop(0, 'transparent');
+      if (stop1 > 0) gradient.addColorStop(stop1, 'transparent');
+      if (stop2 > 0 && stop2 < 1) gradient.addColorStop(stop2, colors[0]!);
+      if (stop3 > 0 && stop3 < 1) gradient.addColorStop(stop3, colors[1]!);
+      if (stop4 < 1) gradient.addColorStop(stop4, 'transparent');
+      gradient.addColorStop(1, 'transparent');
+      
+      // Apply flash with smoother alpha that doesn't flicker at the end
+      const alpha = progress < 0.9 ? Math.sin(progress * Math.PI * 1.11) * 0.9 : (1 - progress) * 9 * 0.9;
+      ctx.globalAlpha = Math.max(0, alpha);
       ctx.fillStyle = gradient;
       ctx.fillRect(0, lineY * cellSize - 2, boardWidth * cellSize, cellSize + 4);
       
@@ -427,20 +425,37 @@ export class VisualEffectsManager {
       const textAlpha = progress < 0.4 ? progress / 0.4 : (0.8 - progress) / 0.4;
       ctx.globalAlpha = textAlpha;
       
-      ctx.font = 'bold 48px monospace';
-      ctx.fillStyle = colorScheme.colors.text;
+      // Use a more modern font stack
+      ctx.font = 'bold 56px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       
-      // Add text shadow for better visibility
-      ctx.shadowBlur = 20;
-      ctx.shadowColor = colorScheme.colors.effects.levelUp[0]!;
+      const centerX = (boardWidth * cellSize) / 2;
+      const centerY = (boardHeight * cellSize) / 2;
       
-      ctx.fillText(
-        `LEVEL ${level}!`,
-        (boardWidth * cellSize) / 2,
-        (boardHeight * cellSize) / 2
+      // Create gradient text effect
+      const textGradient = ctx.createLinearGradient(
+        centerX - 100, centerY - 30,
+        centerX + 100, centerY + 30
       );
+      textGradient.addColorStop(0, colorScheme.colors.effects.levelUp[0]!);
+      textGradient.addColorStop(0.5, colorScheme.colors.text);
+      textGradient.addColorStop(1, colorScheme.colors.effects.levelUp[1]!);
+      
+      // Add multiple shadows for depth
+      ctx.shadowBlur = 25;
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+      ctx.shadowOffsetX = 2;
+      ctx.shadowOffsetY = 2;
+      
+      // Draw outline
+      ctx.strokeStyle = colorScheme.colors.background;
+      ctx.lineWidth = 4;
+      ctx.strokeText(`LEVEL ${level}`, centerX, centerY);
+      
+      // Draw fill with gradient
+      ctx.fillStyle = textGradient;
+      ctx.fillText(`LEVEL ${level}`, centerX, centerY);
     }
     
     ctx.restore();

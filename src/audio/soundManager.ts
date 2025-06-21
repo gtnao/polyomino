@@ -257,9 +257,9 @@ export class SoundManager {
    * Updates music tempo when level changes
    * @param level - Current game level
    */
-  updateMusicTempo(level: number): void {
+  async updateMusicTempo(level: number): Promise<void> {
     if (!this.musicEnabled) {return;}
-    this.musicPlayer.adjustTempoForLevel(level);
+    await this.musicPlayer.adjustTempoForLevel(level);
   }
   
   /**

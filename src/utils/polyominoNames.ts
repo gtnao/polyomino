@@ -3,6 +3,8 @@
  */
 export function getPolyominoName(size: number): string {
   switch (size) {
+    case 3:
+      return 'Triomino (3)';
     case 4:
       return 'Tetromino (4)';
     case 5:

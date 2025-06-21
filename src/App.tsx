@@ -76,7 +76,7 @@ export const App: React.FC = () => {
   const [gameLoop, setGameLoop] = useState<GameLoop | null>(null);
   const [currentScreen, setCurrentScreen] = useState<AppScreen>('main');
   const [availablePieces, setAvailablePieces] = useState<any[]>([]);
-  const [polyominoSize, setPolyominoSize] = useState<4 | 5 | 6 | 7 | 8 | 9>(DEFAULT_GAME_CONFIG.polyominoSize);
+  const [polyominoSize, setPolyominoSize] = useState<3 | 4 | 5 | 6 | 7 | 8 | 9>(DEFAULT_GAME_CONFIG.polyominoSize);
   
   // Settings state
   const [colorSchemeName, setColorSchemeName] = useState<ColorSchemeName>('gruvbox');
@@ -192,6 +192,7 @@ export const App: React.FC = () => {
     // Get board dimensions based on polyomino size
     const getBoardDimensions = (size: number) => {
       switch (size) {
+        case 3: return { width: 8, height: 16 };
         case 4: return { width: 10, height: 20 };
         case 5: return { width: 10, height: 20 };
         case 6: return { width: 12, height: 25 };
@@ -294,7 +295,7 @@ export const App: React.FC = () => {
       onLevelUp: (level) => {
         console.log('Level up:', level);
         void soundManager.playSound('levelUp');
-        soundManager.updateMusicTempo(level);
+        void soundManager.updateMusicTempo(level);
         const currentState = manager.getGameState();
         if (currentState) {
           effectsManager.addLevelUpEffect(
@@ -678,7 +679,7 @@ export const App: React.FC = () => {
         onLevelUp: (level) => {
           console.log('Level up:', level);
           void soundManager.playSound('levelUp');
-          soundManager.updateMusicTempo(level);
+          void soundManager.updateMusicTempo(level);
           const currentState = newManager.getGameState();
           if (currentState) {
             effectsManager.addLevelUpEffect(
@@ -797,7 +798,7 @@ export const App: React.FC = () => {
         onLevelUp: (level) => {
           console.log('Level up:', level);
           void soundManager.playSound('levelUp');
-          soundManager.updateMusicTempo(level);
+          void soundManager.updateMusicTempo(level);
           const currentState = newManager.getGameState();
           if (currentState) {
             effectsManager.addLevelUpEffect(
@@ -1160,16 +1161,22 @@ export const App: React.FC = () => {
             border: `2px solid ${colorScheme.colors.ui.border}`,
           }}>
             <h2 style={{
-              fontSize: '28px',
+              fontSize: '36px',
               color: colorScheme.colors.effects.gameOver,
-              marginBottom: '16px',
+              marginBottom: '20px',
               fontWeight: 'bold',
+              fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+              textTransform: 'uppercase',
+              letterSpacing: '2px',
+              textShadow: `2px 2px 4px rgba(0, 0, 0, 0.5), 0 0 20px ${colorScheme.colors.effects.gameOver}40`,
             }}>Game Over</h2>
             <p style={{
-              fontSize: '24px',
+              fontSize: '32px',
               color: colorScheme.colors.text,
-              marginBottom: '12px',
+              marginBottom: '16px',
               fontWeight: 'bold',
+              fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+              textShadow: '1px 1px 2px rgba(0, 0, 0, 0.3)',
             }}>Score: {gameState.stats.score.toLocaleString()}</p>
             <div style={{
               display: 'flex',
@@ -1207,7 +1214,7 @@ export const App: React.FC = () => {
             </label>
             <select
               value={polyominoSize}
-              onChange={(e) => setPolyominoSize(parseInt(e.target.value) as 4 | 5 | 6 | 7 | 8 | 9)}
+              onChange={(e) => setPolyominoSize(parseInt(e.target.value) as 3 | 4 | 5 | 6 | 7 | 8 | 9)}
               style={{
                 backgroundColor: colorScheme.colors.ui.button,
                 color: colorScheme.colors.text,
@@ -1219,6 +1226,7 @@ export const App: React.FC = () => {
                 cursor: 'pointer',
               }}
             >
+              <option value="3">Triomino (3)</option>
               <option value="4">Tetromino (4)</option>
               <option value="5">Pentomino (5)</option>
               <option value="6">Hexomino (6)</option>

@@ -3,8 +3,8 @@ import type { ColorScheme } from '../game/types';
 import { getPolyominoName } from '../utils/polyominoNames';
 
 interface PolyominoSizeSelectorProps {
-  size: 4 | 5 | 6 | 7 | 8 | 9;
-  onChange: (size: 4 | 5 | 6 | 7 | 8 | 9) => void;
+  size: 3 | 4 | 5 | 6 | 7 | 8 | 9;
+  onChange: (size: 3 | 4 | 5 | 6 | 7 | 8 | 9) => void;
   colorScheme: ColorScheme;
   disabled?: boolean;
 }
@@ -50,11 +50,11 @@ export const PolyominoSizeSelector: React.FC<PolyominoSizeSelectorProps> = ({
       <div style={titleStyle}>POLYOMINO SIZE</div>
       <select
         value={size}
-        onChange={(e) => onChange(parseInt(e.target.value) as 4 | 5 | 6 | 7 | 8 | 9)}
+        onChange={(e) => onChange(parseInt(e.target.value) as 3 | 4 | 5 | 6 | 7 | 8 | 9)}
         disabled={disabled}
         style={selectStyle}
       >
-        {[4, 5, 6, 7, 8, 9].map(s => (
+        {[3, 4, 5, 6, 7, 8, 9].map(s => (
           <option key={s} value={s}>
             {s} - {getPolyominoName(s)}
           </option>
