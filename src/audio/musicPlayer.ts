@@ -57,6 +57,7 @@ export class MusicPlayer {
   private currentTrack: MusicTrack | null = null;
   private playing = false;
   private startTime = 0;
+  private originalTempo: number | null = null;
   private pauseTime = 0;
   private scheduledNotes: Array<{ oscillator: OscillatorNode; stopTime: number }> = [];
   private animationFrameId: number | null = null;
@@ -120,6 +121,9 @@ export class MusicPlayer {
     this.playing = true;
     this.startTime = getAudioContext().currentTime;
     this.pauseTime = 0;
+    
+    // Reset original tempo when playing a new track
+    this.originalTempo = track.tempo;
 
     // Create master gain with greatly reduced volume to prevent distortion
     // Apply 0.1x multiplier to music volume for clean sound
@@ -136,14 +140,16 @@ export class MusicPlayer {
   async adjustTempoForLevel(level: number): Promise<void> {
     if (!this.currentTrack || !this.playing) {return;}
     
-    // Calculate new tempo
+    // Store the original base tempo if not already stored
+    if (!this.originalTempo) {
+      this.originalTempo = this.currentTrack.tempo;
+    }
+    
+    // Calculate new tempo based on original tempo
     const maxSpeedMultiplier = 1.5;
     const speedIncreasePerLevel = 0.02;
     const speedMultiplier = Math.min(1 + (level - 1) * speedIncreasePerLevel, maxSpeedMultiplier);
-    
-    // Get the base tempo (without any multiplier)
-    const originalTempo = Math.round(this.currentTrack.tempo / (1 + ((level - 1) - 1) * speedIncreasePerLevel));
-    const newTempo = Math.round(originalTempo * speedMultiplier);
+    const newTempo = Math.round(this.originalTempo * speedMultiplier);
     
     // If tempo hasn't changed significantly, don't restart
     if (Math.abs(this.currentTrack.tempo - newTempo) < 5) {
@@ -177,6 +183,7 @@ export class MusicPlayer {
   stop(): void {
     this.playing = false;
     this.currentTrack = null;
+    this.originalTempo = null;
 
     // Stop all scheduled notes
     const now = getAudioContext().currentTime;

@@ -1,26 +1,10 @@
-import type { PieceDefinition, PieceType, PolyominoShape } from '@/game/types';
+import type { PieceDefinition, PieceType } from '@/game/types';
 import { generatePolyominoes, getBoundingBox, getAllRotations, normalizePolyomino } from './generator';
 import { limitPolyominoShapes } from './performance';
+import { getHardcodedPieces, WeightedPolyomino } from './hardcodedShapes';
 
 // Cache for generated piece definitions
 const pieceDefinitionsCache = new Map<number, PieceDefinition[]>();
-
-// Standard tetromino shapes (all 7 Tetris pieces)
-const TETROMINO_SHAPES: Record<string, PolyominoShape> = {
-  'I': [[0, 0], [1, 0], [2, 0], [3, 0]], // ####
-  'O': [[0, 0], [1, 0], [0, 1], [1, 1]], // ##
-                                          // ##
-  'T': [[0, 0], [1, 0], [2, 0], [1, 1]], // ###
-                                          //  #
-  'S': [[1, 0], [2, 0], [0, 1], [1, 1]], //  ##
-                                          // ##
-  'Z': [[0, 0], [1, 0], [1, 1], [2, 1]], // ##
-                                          //  ##
-  'L': [[0, 0], [1, 0], [2, 0], [2, 1]], // ###
-                                          //   #
-  'J': [[0, 0], [1, 0], [2, 0], [0, 1]], // ###
-                                          // #
-};
 
 // Color palettes for different polyomino sizes
 const colorPalettes: Record<number, string[]> = {
@@ -72,27 +56,28 @@ export function getPieceDefinitions(size: number): PieceDefinition[] {
   
   let definitions: PieceDefinition[];
   
-  // Special case for tetrominos - use standard Tetris pieces
-  if (size === 4) {
-    const tetrisOrder = ['I', 'O', 'T', 'S', 'Z', 'L', 'J'];
-    const colors = colorPalettes[4]!;
+  // Use hardcoded pieces for sizes 3-7
+  if (size >= 3 && size <= 7) {
+    const hardcodedPieces = getHardcodedPieces(size as 3 | 4 | 5 | 6 | 7);
+    const colors = colorPalettes[size] || generateDefaultColors(hardcodedPieces.length);
     
-    definitions = tetrisOrder.map((id, index) => {
-      const shape = normalizePolyomino(TETROMINO_SHAPES[id]!);
+    definitions = hardcodedPieces.map((piece: WeightedPolyomino, index: number) => {
+      const shape = normalizePolyomino(piece.shape);
       const rotations = getAllRotations(shape);
       const boundingBox = getBoundingBox(shape);
-      const color = colors[index]!;
+      const color = colors[index % colors.length] || '#888888';
       
       return {
-        id,
+        id: piece.name,
         shape,
         rotations,
         color,
-        boundingBox
+        boundingBox,
+        weight: piece.weight // Store weight for later use
       };
     });
   } else {
-    // Generate polyominoes for other sizes
+    // Generate polyominoes for other sizes (1-2, 8-9)
     let polyominoes = generatePolyominoes(size);
     
     // Limit shapes for performance on larger sizes
@@ -109,7 +94,7 @@ export function getPieceDefinitions(size: number): PieceDefinition[] {
       const id = generatePieceId(size, index);
       const rotations = getAllRotations(shape);
       const boundingBox = getBoundingBox(shape);
-      const color = colors[index % colors.length]!;
+      const color = colors[index % colors.length] || '#888888';
       
       return {
         id,

@@ -229,7 +229,7 @@ export class SoundManager {
     });
     
     this.musicPlayer.play(gameMusic);
-    this.musicPlayer.adjustTempoForLevel(level);
+    void this.musicPlayer.adjustTempoForLevel(level);
   }
   
   async playGameOverMusic(): Promise<void> {

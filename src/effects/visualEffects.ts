@@ -181,10 +181,10 @@ export class VisualEffectsManager {
       
       // Create gradient with proper stops
       gradient.addColorStop(0, 'transparent');
-      if (stop1 > 0) gradient.addColorStop(stop1, 'transparent');
-      if (stop2 > 0 && stop2 < 1) gradient.addColorStop(stop2, colors[0]!);
-      if (stop3 > 0 && stop3 < 1) gradient.addColorStop(stop3, colors[1]!);
-      if (stop4 < 1) gradient.addColorStop(stop4, 'transparent');
+      if (stop1 > 0) { gradient.addColorStop(stop1, 'transparent'); }
+      if (stop2 > 0 && stop2 < 1) { gradient.addColorStop(stop2, colors[0]!); }
+      if (stop3 > 0 && stop3 < 1) { gradient.addColorStop(stop3, colors[1]!); }
+      if (stop4 < 1) { gradient.addColorStop(stop4, 'transparent'); }
       gradient.addColorStop(1, 'transparent');
       
       // Apply flash with smoother alpha that doesn't flicker at the end

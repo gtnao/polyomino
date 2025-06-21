@@ -122,6 +122,7 @@ export interface PieceDefinition {
   rotations: readonly PolyominoShape[];
   color: string;
   boundingBox: BoundingBox;
+  weight?: number; // 出現頻度の重み（オプショナル）
 }
 
 export interface BoundingBox {
