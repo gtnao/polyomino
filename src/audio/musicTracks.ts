@@ -1,5 +1,5 @@
 import type { MusicNote } from './musicPlayer';
-import { korobeiniki, odeToJoy, twinkleTwinkle, canonInD, mountainKing } from './songs';
+import { korobeiniki, mountainKing, bumblebee, revolutionary, summerVivaldi } from './songs';
 
 export interface MusicTrackInfo {
   id: string;
@@ -19,31 +19,31 @@ export const musicTracks: MusicTrackInfo[] = [
     id: 'korobeiniki',
     name: 'Korobeiniki (Tetris Theme)',
     notes: korobeiniki,
-    tempo: 140,
-  },
-  {
-    id: 'ode-to-joy',
-    name: 'Ode to Joy',
-    notes: odeToJoy,
-    tempo: 120,
-  },
-  {
-    id: 'twinkle-twinkle',
-    name: 'Twinkle Twinkle Little Star',
-    notes: twinkleTwinkle,
-    tempo: 120,
-  },
-  {
-    id: 'canon-in-d',
-    name: 'Canon in D',
-    notes: canonInD,
-    tempo: 80,
+    tempo: 144,
   },
   {
     id: 'mountain-king',
-    name: 'Hall of the Mountain King',
+    name: 'In the Hall of the Mountain King',
     notes: mountainKing,
-    tempo: 150,
+    tempo: 120,
+  },
+  {
+    id: 'bumblebee',
+    name: 'Flight of the Bumblebee',
+    notes: bumblebee,
+    tempo: 180,
+  },
+  {
+    id: 'revolutionary',
+    name: 'Revolutionary Étude',
+    notes: revolutionary,
+    tempo: 160,
+  },
+  {
+    id: 'summer',
+    name: 'Summer (The Four Seasons)',
+    notes: summerVivaldi,
+    tempo: 140,
   },
 ];
 
