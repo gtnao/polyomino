@@ -127,8 +127,11 @@ export const GraphicsSettings: React.FC<GraphicsSettingsProps> = ({
         ]}
         colorScheme={colorScheme}
       />
+      <h2 style={{
+        ...titleStyle,
+        marginBottom: '20px',
+      }}>Graphics</h2>
       <div style={panelStyle}>
-        <h2 style={titleStyle}>Graphics Settings</h2>
         
         <div style={settingStyle}>
           <label style={labelStyle}>

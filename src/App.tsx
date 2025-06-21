@@ -21,6 +21,7 @@ import {
   KeyBindingsDisplay,
   Icon,
 } from './ui';
+import { PolyominoSizeSelector } from './ui/PolyominoSizeSelector';
 
 // Default game configuration
 const DEFAULT_GAME_CONFIG = {
@@ -84,6 +85,7 @@ export const App: React.FC = () => {
   const [musicEnabled, setMusicEnabled] = useState(true);
   const [effectVolume, setEffectVolume] = useState(0.7);
   const [musicVolume, setMusicVolume] = useState(0.5);
+  const [selectedMusicTrack, setSelectedMusicTrack] = useState('random');
   const [particleEffects, setParticleEffects] = useState(true);
   const [ghostPieceEnabled, setGhostPieceEnabled] = useState(true);
   
@@ -172,11 +174,7 @@ export const App: React.FC = () => {
   }, [polyominoSize, colorSchemeName, ghostPieceEnabled, soundEnabled, musicEnabled, effectVolume, musicVolume, particleEffects, saveManager]);
 
   // Play menu music when on main menu
-  useEffect(() => {
-    if (currentScreen === 'main' && gameState?.status === 'ready') {
-      void soundManager.playMenuMusic();
-    }
-  }, [currentScreen, gameState?.status, soundManager]);
+  // Removed menu music from main screen per user request
 
   // Load high score on mount and when polyomino size changes
   useEffect(() => {
@@ -296,6 +294,7 @@ export const App: React.FC = () => {
       onLevelUp: (level) => {
         console.log('Level up:', level);
         void soundManager.playSound('levelUp');
+        soundManager.updateMusicTempo(level);
         const currentState = manager.getGameState();
         if (currentState) {
           effectsManager.addLevelUpEffect(
@@ -364,9 +363,11 @@ export const App: React.FC = () => {
     if (gameManager && gameLoop) {
       gameManager.startGame();
       gameLoop.start();
-      // Play game music
+      // Play game music with a small delay to ensure proper initialization
       void soundManager.stopMusic();
-      void soundManager.playGameMusic(gameState?.stats.level || 1);
+      setTimeout(() => {
+        void soundManager.playGameMusic(gameState?.stats.level || 1);
+      }, 100);
     }
   }, [gameManager, gameLoop, soundManager, gameState]);
 
@@ -668,6 +669,7 @@ export const App: React.FC = () => {
         onLevelUp: (level) => {
           console.log('Level up:', level);
           void soundManager.playSound('levelUp');
+          soundManager.updateMusicTempo(level);
           const currentState = newManager.getGameState();
           if (currentState) {
             effectsManager.addLevelUpEffect(
@@ -786,6 +788,7 @@ export const App: React.FC = () => {
         onLevelUp: (level) => {
           console.log('Level up:', level);
           void soundManager.playSound('levelUp');
+          soundManager.updateMusicTempo(level);
           const currentState = newManager.getGameState();
           if (currentState) {
             effectsManager.addLevelUpEffect(
@@ -829,6 +832,7 @@ export const App: React.FC = () => {
         musicEnabled={musicEnabled}
         effectVolume={effectVolume}
         musicVolume={musicVolume}
+        selectedMusicTrack={selectedMusicTrack}
         particleEffects={particleEffects}
         ghostPieceEnabled={ghostPieceEnabled}
         onColorSchemeChange={handleColorSchemeChange}
@@ -840,13 +844,9 @@ export const App: React.FC = () => {
           setMusicEnabled(enabled);
           soundManager.setMusicEnabled(enabled);
           
-          // Resume music when enabled
-          if (enabled) {
-            if (gameState?.status === 'playing') {
-              await soundManager.playGameMusic(gameState.stats.level);
-            } else {
-              await soundManager.playMenuMusic();
-            }
+          // Resume music when enabled (only in game)
+          if (enabled && gameState?.status === 'playing') {
+            await soundManager.playGameMusic(gameState.stats.level);
           }
         }}
         onEffectVolumeChange={(volume: number) => {
@@ -856,6 +856,10 @@ export const App: React.FC = () => {
         onMusicVolumeChange={(volume: number) => {
           setMusicVolume(volume);
           soundManager.setMusicVolume(volume);
+        }}
+        onMusicTrackChange={(trackId: string) => {
+          setSelectedMusicTrack(trackId);
+          soundManager.setSelectedTrack(trackId);
         }}
         onParticleToggle={(enabled: boolean) => {
           setParticleEffects(enabled);
@@ -929,6 +933,12 @@ export const App: React.FC = () => {
               currentPieceType={gameState.currentPiece?.type || null}
               colorScheme={colorScheme}
               showTitle
+            />
+            <PolyominoSizeSelector
+              size={polyominoSize}
+              onChange={setPolyominoSize}
+              colorScheme={colorScheme}
+              disabled={gameState.status === 'playing' || gameState.status === 'paused'}
             />
           </div>
         }
@@ -1047,7 +1057,7 @@ export const App: React.FC = () => {
         <GameCanvas
           board={gameState.board}
           currentPiece={gameState.currentPiece}
-          ghostPiece={gameState.ghostPiece}
+          ghostPiece={ghostPieceEnabled ? gameState.ghostPiece : null}
           cellSize={30}
           colorScheme={colorScheme}
           effectsManager={effectsManager}
@@ -1093,13 +1103,34 @@ export const App: React.FC = () => {
         
         {gameState.status === 'gameover' && (
           <div style={{ 
-            marginBottom: '30px',
-            color: colorScheme.colors.ui.border,
+            marginBottom: '40px',
+            padding: '30px',
+            backgroundColor: `${colorScheme.colors.ui.panel}cc`,
+            borderRadius: '8px',
+            border: `2px solid ${colorScheme.colors.effects.gameOver}`,
           }}>
-            <h2>Game Over</h2>
-            <p>Final Score: {gameState.stats.score.toLocaleString()}</p>
-            <p>Level: {gameState.stats.level}</p>
-            <p>Lines: {gameState.stats.lines}</p>
+            <h2 style={{
+              fontSize: '48px',
+              color: colorScheme.colors.effects.gameOver,
+              marginBottom: '20px',
+              textTransform: 'uppercase',
+              letterSpacing: '2px',
+            }}>Game Over</h2>
+            <p style={{
+              fontSize: '36px',
+              color: colorScheme.colors.text,
+              marginBottom: '15px',
+              fontWeight: 'bold',
+            }}>Final Score: {gameState.stats.score.toLocaleString()}</p>
+            <p style={{
+              fontSize: '20px',
+              color: colorScheme.colors.textSecondary,
+              marginBottom: '5px',
+            }}>Level: {gameState.stats.level}</p>
+            <p style={{
+              fontSize: '20px',
+              color: colorScheme.colors.textSecondary,
+            }}>Lines: {gameState.stats.lines}</p>
           </div>
         )}
 
@@ -1108,44 +1139,6 @@ export const App: React.FC = () => {
           colorScheme={colorScheme}
           title=""
         />
-        
-        {gameState?.status === 'ready' && (
-          <div style={{ 
-            marginTop: '30px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '10px',
-          }}>
-            <label style={{ 
-              color: colorScheme.colors.text,
-              fontSize: '16px',
-            }}>
-              Polyomino Size:
-            </label>
-            <select
-              value={polyominoSize}
-              onChange={(e) => setPolyominoSize(parseInt(e.target.value) as 4 | 5 | 6 | 7 | 8 | 9)}
-              style={{
-                backgroundColor: colorScheme.colors.ui.button,
-                color: colorScheme.colors.text,
-                border: `2px solid ${colorScheme.colors.ui.border}`,
-                borderRadius: '4px',
-                padding: '5px 10px',
-                fontSize: '16px',
-                fontFamily: 'monospace',
-                cursor: 'pointer',
-              }}
-            >
-              <option value="4">4 - Tetromino</option>
-              <option value="5">5 - Pentomino</option>
-              <option value="6">6 - Hexomino</option>
-              <option value="7">7 - Heptomino</option>
-              <option value="8">8 - Octomino</option>
-              <option value="9">9 - Nonomino</option>
-            </select>
-          </div>
-        )}
       </div>
     </GameLayout>
   );

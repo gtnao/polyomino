@@ -63,8 +63,13 @@ export function calculateLevel(lines: number): number {
  * @returns Drop interval in milliseconds
  */
 export function getDropInterval(level: number): number {
-  const effectiveLevel = Math.min(level, 20);
-  return Math.round(1000 / (effectiveLevel + 9));
+  // Base interval at level 1 is ~1000ms
+  // Drops faster each level, with diminishing returns at higher levels
+  const baseInterval = 1000;
+  const speedMultiplier = Math.pow(0.95, level - 1); // 5% faster each level
+  const minInterval = 50; // Cap at 50ms (20 drops per second)
+  
+  return Math.max(Math.round(baseInterval * speedMultiplier), minInterval);
 }
 
 /**
@@ -158,7 +163,9 @@ export function calculatePPS(stats: GameStats): number {
   if (duration <= 0) {return 0;}
   
   const seconds = duration / 1000;
-  return Math.round(stats.piecesPlaced / seconds);
+  const pps = stats.piecesPlaced / seconds;
+  // Return with 2 decimal places instead of rounding to whole number
+  return Math.round(pps * 100) / 100;
 }
 
 /**

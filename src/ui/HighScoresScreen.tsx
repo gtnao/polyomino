@@ -1,6 +1,7 @@
 import React from 'react';
 import type { ColorScheme, HighScore } from '../game/types';
 import { Breadcrumb } from './Breadcrumb';
+import { getPolyominoName } from '../utils/polyominoNames';
 
 export interface HighScoresScreenProps {
   colorScheme: ColorScheme;
@@ -89,15 +90,17 @@ export const HighScoresScreen: React.FC<HighScoresScreenProps> = ({
   };
   
   const buttonStyle: React.CSSProperties = {
-    backgroundColor: colors.ui.button,
-    color: colors.text,
-    border: `2px solid ${colors.ui.border}`,
+    backgroundColor: 'transparent',
+    color: colors.textSecondary,
+    border: 'none',
     borderRadius: '4px',
     padding: '10px 20px',
     fontSize: '16px',
     fontFamily: 'monospace',
     cursor: 'pointer',
-    marginTop: '20px',
+    marginTop: '30px',
+    transition: 'color 0.2s ease',
+    textDecoration: 'underline',
   };
   
   const emptyMessageStyle: React.CSSProperties = {
@@ -134,8 +137,11 @@ export const HighScoresScreen: React.FC<HighScoresScreenProps> = ({
         ]}
         colorScheme={colorScheme}
       />
+      <h1 style={{
+        ...titleStyle,
+        marginBottom: '20px',
+      }}>High Scores</h1>
       <div style={panelStyle}>
-        <h1 style={titleStyle}>High Scores</h1>
         {onSizeChange ? (
           <div style={{ ...subtitleStyle, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
             <label style={{ fontSize: '18px' }}>Size:</label>
@@ -155,13 +161,13 @@ export const HighScoresScreen: React.FC<HighScoresScreenProps> = ({
             >
               {availableSizes.map(size => (
                 <option key={size} value={size}>
-                  {size}-Polyomino
+                  {getPolyominoName(size)}
                 </option>
               ))}
             </select>
           </div>
         ) : (
-          <h2 style={subtitleStyle}>{polyominoSize}-Polyomino</h2>
+          <h2 style={subtitleStyle}>{getPolyominoName(polyominoSize)}</h2>
         )}
         
         {highScores.length === 0 ? (
@@ -200,13 +206,13 @@ export const HighScoresScreen: React.FC<HighScoresScreenProps> = ({
             style={buttonStyle}
             onClick={onBack}
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = colors.ui.buttonHover;
+              e.currentTarget.style.color = colors.text;
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = colors.ui.button;
+              e.currentTarget.style.color = colors.textSecondary;
             }}
           >
-            Back
+            ← Back
           </button>
           {highScores.length > 0 && onClear && (
             <button

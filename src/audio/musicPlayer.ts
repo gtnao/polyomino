@@ -128,6 +128,24 @@ export class MusicPlayer {
   }
 
   /**
+   * Adjusts the tempo of the current track based on level
+   * @param level - Game level (1-99)
+   */
+  adjustTempoForLevel(level: number): void {
+    if (!this.currentTrack) {return;}
+    
+    // Increase tempo by 2% per level, capped at 2x speed
+    const speedMultiplier = Math.min(1 + (level - 1) * 0.02, 2.0);
+    const baseTempo = this.currentTrack.tempo;
+    
+    // Store the adjusted tempo in the track
+    this.currentTrack = {
+      ...this.currentTrack,
+      tempo: Math.round(baseTempo * speedMultiplier)
+    };
+  }
+
+  /**
    * Stops the current track
    */
   stop(): void {

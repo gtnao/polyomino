@@ -2,6 +2,7 @@ import React from 'react';
 import type { ColorScheme } from '../game/types';
 import { Breadcrumb } from './Breadcrumb';
 import { Icon } from './Icon';
+import { musicTracks } from '../audio/musicTracks';
 
 interface AudioSettingsProps {
   colorScheme: ColorScheme;
@@ -9,10 +10,12 @@ interface AudioSettingsProps {
   musicEnabled: boolean;
   effectVolume: number;
   musicVolume: number;
+  selectedMusicTrack?: string;
   onSoundToggle: (enabled: boolean) => void;
   onMusicToggle: (enabled: boolean) => void;
   onEffectVolumeChange: (volume: number) => void;
   onMusicVolumeChange: (volume: number) => void;
+  onMusicTrackChange?: (trackId: string) => void;
   onBack: () => void;
 }
 
@@ -22,10 +25,12 @@ export const AudioSettings: React.FC<AudioSettingsProps> = ({
   musicEnabled,
   effectVolume,
   musicVolume,
+  selectedMusicTrack = 'random',
   onSoundToggle,
   onMusicToggle,
   onEffectVolumeChange,
   onMusicVolumeChange,
+  onMusicTrackChange,
   onBack,
 }) => {
   const { colors } = colorScheme;
@@ -182,6 +187,41 @@ export const AudioSettings: React.FC<AudioSettingsProps> = ({
             />
           </label>
         </div>
+        
+        {onMusicTrackChange && (
+          <div style={settingStyle}>
+            <label style={labelStyle}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Icon name="music" size={20} />
+                <span>Music Track</span>
+              </span>
+              <select
+                value={selectedMusicTrack}
+                onChange={(e) => onMusicTrackChange(e.target.value)}
+                disabled={!musicEnabled}
+                style={{
+                  backgroundColor: colors.ui.button,
+                  color: colors.text,
+                  border: `2px solid ${colors.ui.border}`,
+                  borderRadius: '4px',
+                  padding: '8px 12px',
+                  fontSize: '14px',
+                  fontFamily: 'monospace',
+                  cursor: musicEnabled ? 'pointer' : 'not-allowed',
+                  opacity: musicEnabled ? 1 : 0.5,
+                  marginTop: '8px',
+                  width: '100%',
+                }}
+              >
+                {musicTracks.map(track => (
+                  <option key={track.id} value={track.id}>
+                    {track.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+        )}
         
         <button
           style={backButtonStyle}

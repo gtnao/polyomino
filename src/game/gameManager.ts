@@ -274,9 +274,12 @@ export function createGameManager(
     const polyomino = polyominoes.find(p => p.id === pieceId);
     if (!polyomino) {return;}
 
-    // Refill bag if needed
-    if (pieceBag.pieces.length < 5) {
-      pieceBag = createBag(polyominoes.map(p => p.id));
+    // Refill bag if needed (ensure we have enough for next pieces)
+    if (pieceBag.pieces.length < gameState.config.features.nextPieceCount) {
+      const newBag = createBag(polyominoes.map(p => p.id));
+      pieceBag = {
+        pieces: [...pieceBag.pieces, ...newBag.pieces]
+      };
     }
 
     // Update next pieces

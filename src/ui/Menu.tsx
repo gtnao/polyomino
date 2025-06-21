@@ -102,14 +102,12 @@ export const Menu: React.FC<MenuProps> = ({
             if (!item.disabled) {
               e.currentTarget.style.backgroundColor = colorScheme.colors.ui.buttonHover;
               e.currentTarget.style.transform = 'scale(1.02)';
-              e.currentTarget.style.boxShadow = `0 2px 4px ${colorScheme.colors.ui.border}`;
             }
           }}
           onMouseLeave={(e) => {
             if (!item.disabled) {
               e.currentTarget.style.backgroundColor = 'transparent';
               e.currentTarget.style.transform = 'scale(1)';
-              e.currentTarget.style.boxShadow = 'none';
             }
           }}
         >

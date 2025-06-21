@@ -12,6 +12,7 @@ export interface SettingsScreenProps {
   musicEnabled: boolean;
   effectVolume: number;
   musicVolume: number;
+  selectedMusicTrack?: string;
   particleEffects: boolean;
   ghostPieceEnabled: boolean;
   onColorSchemeChange: (scheme: ColorSchemeName) => void;
@@ -19,6 +20,7 @@ export interface SettingsScreenProps {
   onMusicToggle: (enabled: boolean) => void;
   onEffectVolumeChange: (volume: number) => void;
   onMusicVolumeChange: (volume: number) => void;
+  onMusicTrackChange?: (trackId: string) => void;
   onParticleToggle: (enabled: boolean) => void;
   onGhostPieceToggle: (enabled: boolean) => void;
   onBack: () => void;
@@ -33,6 +35,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   musicEnabled,
   effectVolume,
   musicVolume,
+  selectedMusicTrack,
   particleEffects,
   ghostPieceEnabled,
   onColorSchemeChange,
@@ -40,6 +43,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   onMusicToggle,
   onEffectVolumeChange,
   onMusicVolumeChange,
+  onMusicTrackChange,
   onParticleToggle,
   onGhostPieceToggle,
   onBack,
@@ -58,10 +62,12 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         musicEnabled={musicEnabled}
         effectVolume={effectVolume}
         musicVolume={musicVolume}
+        selectedMusicTrack={selectedMusicTrack || 'random'}
         onSoundToggle={onSoundToggle}
         onMusicToggle={onMusicToggle}
         onEffectVolumeChange={onEffectVolumeChange}
         onMusicVolumeChange={onMusicVolumeChange}
+        {...(onMusicTrackChange && { onMusicTrackChange })}
         onBack={handleBack}
       />
     );
@@ -84,7 +90,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   }
 
   const menuItems = [
-    { id: 'audio', label: 'Audio Settings', action: () => setCurrentView('audio'), icon: 'audio' as const },
+    { id: 'audio', label: 'Audio', action: () => setCurrentView('audio'), icon: 'audio' as const },
     { id: 'graphics', label: 'Graphics', action: () => setCurrentView('graphics'), icon: 'palette' as const },
     { id: 'back', label: 'Back', action: onBack, icon: 'back' as const },
   ];

@@ -8,7 +8,8 @@ import {
   playSoundEffect
 } from './soundEffects';
 import { MusicPlayer, createMusicTrack } from './musicPlayer';
-import { menuSongs, gameSongs, gameOverSong } from './songs';
+import { menuSongs, gameOverSong } from './songs';
+import { getTrackById, getRandomTrack } from './musicTracks';
 import {
   createImprovedPieceMoveSFX,
   createImprovedPieceRotateSFX,
@@ -28,6 +29,7 @@ export class SoundManager {
   private initialized: boolean = false;
   private musicPlayer: MusicPlayer;
   private musicEnabled: boolean = true;
+  private selectedTrackId: string = 'random';
   private musicVolume: number = 0.5;
   private soundEffects = new Map<string, SoundEffect>();
   
@@ -200,22 +202,34 @@ export class SoundManager {
     
     await this.ensureInitialized();
     
-    // Select appropriate music based on level
-    const songs = gameSongs;
-    const selectedSong = songs[Math.floor(Math.random() * songs.length)]!;
+    // Ensure audio context is running
+    try {
+      await resumeAudioContext();
+    } catch (error) {
+      console.warn('Failed to resume audio context:', error);
+      return;
+    }
     
-    // Increase tempo at higher levels
-    const baseTempo = 140;
-    const tempo = baseTempo + (level - 1) * 5;
+    // Get selected track or random
+    let trackInfo;
+    if (this.selectedTrackId === 'random') {
+      trackInfo = getRandomTrack();
+    } else {
+      trackInfo = getTrackById(this.selectedTrackId);
+      if (!trackInfo) {
+        trackInfo = getRandomTrack();
+      }
+    }
     
     const gameMusic = createMusicTrack({
-      name: 'Game Music',
-      tempo: Math.min(tempo, 200), // Cap at 200 BPM
-      notes: selectedSong,
+      name: trackInfo.name,
+      tempo: trackInfo.tempo,
+      notes: trackInfo.notes,
       loop: true
     });
     
     this.musicPlayer.play(gameMusic);
+    this.musicPlayer.adjustTempoForLevel(level);
   }
   
   async playGameOverMusic(): Promise<void> {
@@ -237,5 +251,29 @@ export class SoundManager {
   
   async stopMusic(): Promise<void> {
     await this.musicPlayer.fadeOut(500);
+  }
+  
+  /**
+   * Updates music tempo when level changes
+   * @param level - Current game level
+   */
+  updateMusicTempo(level: number): void {
+    if (!this.musicEnabled) {return;}
+    this.musicPlayer.adjustTempoForLevel(level);
+  }
+  
+  /**
+   * Sets the selected music track
+   * @param trackId - The ID of the track to select
+   */
+  setSelectedTrack(trackId: string): void {
+    this.selectedTrackId = trackId;
+  }
+  
+  /**
+   * Gets the currently selected track ID
+   */
+  getSelectedTrack(): string {
+    return this.selectedTrackId;
   }
 }
