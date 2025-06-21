@@ -22,6 +22,7 @@ import { createBag, getNextPiece } from './bag';
 import { initLockDelay, updateLockDelay, shouldLockPiece, resetLockDelay } from './lockDelay';
 import { getColorScheme } from '../rendering/colorSchemes';
 import { rotateShape, getKickOffsets } from './rotation';
+import { getColorVariation } from '../rendering/colorUtils';
 
 export interface GameManagerConfig {
   polyominoSize?: 4 | 5 | 6 | 7 | 8 | 9;
@@ -29,6 +30,9 @@ export interface GameManagerConfig {
   boardHeight?: number;
   startLevel?: number;
   enableAudio?: boolean;
+  theme?: {
+    colorScheme?: string;
+  };
 }
 
 export interface GameManagerEvents {
@@ -61,6 +65,9 @@ const DEFAULT_CONFIG: Required<GameManagerConfig> = {
   boardHeight: 20,
   startLevel: 1,
   enableAudio: true,
+  theme: {
+    colorScheme: 'gruvbox',
+  },
 };
 
 /**
@@ -76,7 +83,9 @@ function createPiece(
 ): ActivePiece {
   const theme = getColorScheme(colorScheme as any);
   const pieceColors = theme.colors.pieces;
-  const actualColor = pieceColors[colorIndex % pieceColors.length];
+  const baseColor = pieceColors[colorIndex % pieceColors.length];
+  // Apply color variation based on piece ID
+  const actualColor = getColorVariation(baseColor, id, colorIndex);
   
   return {
     type: id,
@@ -201,7 +210,7 @@ export function createGameManager(
         musicVolume: 0.5,
       },
       theme: {
-        colorScheme: 'gruvbox',
+        colorScheme: (config.theme?.colorScheme || 'gruvbox') as any,
         particleEffects: true,
       },
     };

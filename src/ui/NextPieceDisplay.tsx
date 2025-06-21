@@ -50,9 +50,9 @@ const PiecePreview: React.FC<{
     const offsetX = Math.floor((3 - width) / 2) - minX;
     const offsetY = Math.floor((3 - height) / 2) - minY;
 
-    // Get polyomino color based on size
-    const size = polyomino.cells.length;
-    const color = getPieceColor(colorScheme, size - 1);
+    // Get polyomino color based on colorIndex
+    const colorIndex = polyomino.colorIndex || 0;
+    const color = getPieceColor(colorScheme, colorIndex);
 
     // Draw the polyomino cells
     polyomino.cells.forEach((cell: number[]) => {

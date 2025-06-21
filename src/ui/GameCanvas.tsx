@@ -1,6 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import type { Board, ActivePiece, GhostPiece, ColorScheme, GameConfig } from '../game/types';
 import { initCanvas, renderGame } from '../rendering/renderer';
+import type { VisualEffectsManager } from '../effects/visualEffects';
 
 interface GameCanvasProps {
   board: Board;
@@ -13,6 +14,7 @@ interface GameCanvasProps {
     holdEnabled?: boolean;
     nextPieceCount?: number;
   };
+  effectsManager?: VisualEffectsManager;
   className?: string;
 }
 
@@ -23,6 +25,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
   cellSize,
   colorScheme,
   features,
+  effectsManager,
   className,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -88,7 +91,45 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
       currentPiece,
       ghostPiece
     );
-  }, [board, currentPiece, ghostPiece]);
+    
+    // Render visual effects if available
+    if (effectsManager) {
+      effectsManager.render(contextRef.current.ctx);
+    }
+  }, [board, currentPiece, ghostPiece, effectsManager]);
+  
+  // Animation loop for effects
+  useEffect(() => {
+    if (!effectsManager) return;
+    
+    let animationId: number;
+    let lastTime = 0;
+    
+    const animate = (time: number) => {
+      const deltaTime = time - lastTime;
+      lastTime = time;
+      
+      effectsManager.update(deltaTime);
+      
+      if (contextRef.current) {
+        renderGame(
+          contextRef.current,
+          board,
+          currentPiece,
+          ghostPiece
+        );
+        effectsManager.render(contextRef.current.ctx);
+      }
+      
+      animationId = requestAnimationFrame(animate);
+    };
+    
+    animationId = requestAnimationFrame(animate);
+    
+    return () => {
+      cancelAnimationFrame(animationId);
+    };
+  }, [effectsManager, board, currentPiece, ghostPiece]);
 
   return (
     <canvas

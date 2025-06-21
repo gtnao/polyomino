@@ -6,6 +6,8 @@ import { getColorScheme } from './rendering/colorSchemes';
 import { createStorageAdapter } from './storage/storageAdapter';
 import { SaveManager } from './storage/saveManager';
 import { generatePolyominoes } from './polyomino/generator';
+import { SoundManager } from './audio/soundManager';
+import { VisualEffectsManager } from './effects/visualEffects';
 import {
   GameCanvas,
   NextPieceDisplay,
@@ -18,8 +20,8 @@ import {
   PieceStats,
 } from './ui';
 
-// Game configuration
-const GAME_CONFIG = {
+// Default game configuration
+const DEFAULT_GAME_CONFIG = {
   polyominoSize: 5 as const,
   boardWidth: 10,
   boardHeight: 20,
@@ -43,6 +45,7 @@ export const App: React.FC = () => {
   const [gameLoop, setGameLoop] = useState<GameLoop | null>(null);
   const [currentScreen, setCurrentScreen] = useState<AppScreen>('main');
   const [availablePieces, setAvailablePieces] = useState<any[]>([]);
+  const [polyominoSize, setPolyominoSize] = useState<4 | 5 | 6 | 7 | 8 | 9>(DEFAULT_GAME_CONFIG.polyominoSize);
   
   // Settings state
   const [colorSchemeName, setColorSchemeName] = useState<ColorSchemeName>('gruvbox');
@@ -65,26 +68,55 @@ export const App: React.FC = () => {
   const [saveManager] = useState(() => new SaveManager(createStorageAdapter()));
   const [highScores, setHighScores] = useState<any[]>([]);
   const [currentHighScore, setCurrentHighScore] = useState<number>(0);
+  
+  // Sound manager
+  const [soundManager] = useState(() => new SoundManager());
+  
+  // Visual effects manager
+  const [effectsManager] = useState(() => new VisualEffectsManager());
 
-  // Load high score on mount
+  // Load high score on mount and when polyomino size changes
   useEffect(() => {
-    saveManager.loadHighScores(GAME_CONFIG.polyominoSize).then(scores => {
+    saveManager.loadHighScores(polyominoSize).then(scores => {
       if (scores.length > 0) {
         setCurrentHighScore(scores[0].score);
+      } else {
+        setCurrentHighScore(0);
       }
     });
-  }, [saveManager]);
+  }, [saveManager, polyominoSize]);
   
   // Initialize game systems
   useEffect(() => {
-    const manager = createGameManager(GAME_CONFIG, {
+    // Get board dimensions based on polyomino size
+    const getBoardDimensions = (size: number) => {
+      switch (size) {
+        case 4: return { width: 10, height: 20 };
+        case 5: return { width: 10, height: 20 };
+        case 6: return { width: 12, height: 25 };
+        case 7: return { width: 14, height: 28 };
+        case 8: return { width: 16, height: 30 };
+        case 9: return { width: 18, height: 32 };
+        default: return { width: 10, height: 20 };
+      }
+    };
+    
+    const { width, height } = getBoardDimensions(polyominoSize);
+    const gameConfig = {
+      ...DEFAULT_GAME_CONFIG,
+      polyominoSize,
+      boardWidth: width,
+      boardHeight: height,
+    };
+    
+    const manager = createGameManager(gameConfig, {
       onGameStart: () => console.log('Game started'),
       onGameEnd: async () => {
         console.log('Game ended');
         const currentState = manager.getGameState();
         if (currentState) {
           const score = currentState.stats.score;
-          const isHigh = await saveManager.isHighScore(score, GAME_CONFIG.polyominoSize);
+          const isHigh = await saveManager.isHighScore(score, polyominoSize);
           
           if (isHigh) {
             await saveManager.addHighScore({
@@ -93,7 +125,7 @@ export const App: React.FC = () => {
               lines: currentState.stats.lines,
               time: Math.floor((Date.now() - currentState.stats.gameStartTime) / 1000),
               date: new Date().toISOString().split('T')[0],
-              polyominoSize: GAME_CONFIG.polyominoSize,
+              polyominoSize: polyominoSize,
             });
             
             // Update current high score
@@ -101,6 +133,9 @@ export const App: React.FC = () => {
               setCurrentHighScore(score);
             }
           }
+          
+          // Play game over sound
+          void soundManager.playSound('gameOver');
           
           // Update statistics
           await saveManager.updateStatistics({
@@ -111,10 +146,40 @@ export const App: React.FC = () => {
           });
         }
       },
-      onPause: () => console.log('Game paused'),
-      onResume: () => console.log('Game resumed'),
-      onLineClear: (lines) => console.log('Lines cleared:', lines),
-      onLevelUp: (level) => console.log('Level up:', level),
+      onPause: () => {
+        console.log('Game paused');
+        soundManager.setEnabled(soundEnabled);
+      },
+      onResume: () => {
+        console.log('Game resumed');
+        soundManager.resume();
+      },
+      onLineClear: (lines) => {
+        console.log('Lines cleared:', lines);
+        void soundManager.playSound('lineClear');
+        const currentState = manager.getGameState();
+        if (currentState) {
+          effectsManager.addLineClearEffect(
+            lines, 
+            colorScheme, 
+            currentState.config.boardDimensions.width,
+            currentState.config.rendering.cellSize
+          );
+        }
+      },
+      onLevelUp: (level) => {
+        console.log('Level up:', level);
+        void soundManager.playSound('levelUp');
+      },
+      onPiecePlace: () => {
+        void soundManager.playSound('drop');
+      },
+      onPieceMove: () => {
+        void soundManager.playSound('move');
+      },
+      onPieceRotate: () => {
+        void soundManager.playSound('rotate');
+      },
     });
 
     const loop = createGameLoop({
@@ -136,7 +201,7 @@ export const App: React.FC = () => {
     
     // Generate polyominoes to get available pieces
     // This is a temporary solution - ideally we'd get this from the game manager
-    const polyominoShapes = generatePolyominoes(GAME_CONFIG.polyominoSize);
+    const polyominoShapes = generatePolyominoes(polyominoSize);
     const pieces = polyominoShapes.map((shape, index) => ({
       id: `piece_${index}`,
       cells: shape.map(coord => [coord[0], coord[1]]),
@@ -149,7 +214,7 @@ export const App: React.FC = () => {
     return () => {
       loop.stop();
     };
-  }, []);
+  }, [polyominoSize, saveManager, currentHighScore, soundManager, soundEnabled]);
 
   // Handle input
   const handleInput = useCallback((action: GameAction) => {
@@ -181,15 +246,21 @@ export const App: React.FC = () => {
   }, [gameManager, gameLoop]);
 
   const restartGame = useCallback(() => {
-    if (gameManager) {
+    if (gameManager && gameLoop) {
       gameManager.restartGame();
+      // Ensure the game loop is running after restart
+      if (!gameLoop.isRunning()) {
+        gameLoop.start();
+      }
     }
-  }, [gameManager]);
+  }, [gameManager, gameLoop]);
 
   const quitGame = useCallback(() => {
     if (gameManager && gameLoop) {
       gameManager.endGame();
       gameLoop.stop();
+      // Reset to main screen
+      setCurrentScreen('main');
     }
   }, [gameManager, gameLoop]);
 
@@ -330,7 +401,7 @@ export const App: React.FC = () => {
   // Load high scores when showing high scores screen
   useEffect(() => {
     if (currentScreen === 'highScores') {
-      saveManager.loadHighScores(GAME_CONFIG.polyominoSize).then(scores => {
+      saveManager.loadHighScores(polyominoSize).then(scores => {
         setHighScores(scores);
       });
     }
@@ -366,8 +437,97 @@ export const App: React.FC = () => {
   const handleColorSchemeChange = useCallback((scheme: ColorSchemeName) => {
     setColorSchemeName(scheme);
     setColorScheme(getColorScheme(scheme));
-    // TODO: Update game config with new color scheme
-  }, []);
+    // Recreate game manager with new color scheme
+    if (gameManager && gameLoop) {
+      gameLoop.stop();
+      const newManager = createGameManager({
+        ...DEFAULT_GAME_CONFIG,
+        polyominoSize,
+        theme: { colorScheme: scheme },
+      }, {
+        onGameStart: () => console.log('Game started'),
+        onGameEnd: async () => {
+          console.log('Game ended');
+          const currentState = newManager.getGameState();
+          if (currentState) {
+            const score = currentState.stats.score;
+            const isHigh = await saveManager.isHighScore(score, polyominoSize);
+            
+            if (isHigh) {
+              await saveManager.addHighScore({
+                score,
+                level: currentState.stats.level,
+                lines: currentState.stats.lines,
+                time: Math.floor((Date.now() - currentState.stats.gameStartTime) / 1000),
+                date: new Date().toISOString().split('T')[0],
+                polyominoSize: polyominoSize,
+              });
+              
+              if (score > currentHighScore) {
+                setCurrentHighScore(score);
+              }
+            }
+            
+            await saveManager.updateStatistics({
+              gamesPlayed: 1,
+              scoreEarned: score,
+              linesCleared: currentState.stats.lines,
+              timePlayed: Math.floor((Date.now() - currentState.stats.gameStartTime) / 1000),
+            });
+          }
+        },
+        onPause: () => {
+          console.log('Game paused');
+          soundManager.setEnabled(soundEnabled);
+        },
+        onResume: () => {
+          console.log('Game resumed');
+          soundManager.resume();
+        },
+        onLineClear: (lines) => {
+          console.log('Lines cleared:', lines);
+          void soundManager.playSound('lineClear');
+          const currentState = newManager.getGameState();
+          if (currentState) {
+            effectsManager.addLineClearEffect(
+              lines, 
+              colorScheme, 
+              currentState.config.boardDimensions.width,
+              currentState.config.rendering.cellSize
+            );
+          }
+        },
+        onLevelUp: (level) => {
+          console.log('Level up:', level);
+          void soundManager.playSound('levelUp');
+        },
+        onPiecePlace: () => {
+          void soundManager.playSound('drop');
+        },
+        onPieceMove: () => {
+          void soundManager.playSound('move');
+        },
+        onPieceRotate: () => {
+          void soundManager.playSound('rotate');
+        },
+      });
+      
+      const newLoop = createGameLoop({
+        onUpdate: (deltaTime) => {
+          newManager.update(deltaTime);
+          setGameState(newManager.getGameState());
+        },
+        onRender: () => {},
+        onPause: () => console.log('Loop paused'),
+        onResume: () => console.log('Loop resumed'),
+        onStop: () => console.log('Loop stopped'),
+      });
+      
+      setGameManager(newManager);
+      setGameLoop(newLoop);
+      setGameState(newManager.getGameState());
+    }
+  }, [gameManager, gameLoop, saveManager, currentHighScore, polyominoSize, soundManager, soundEnabled]);
   
   const handleGhostPieceToggle = useCallback((enabled: boolean) => {
     setGhostPieceEnabled(enabled);
@@ -387,11 +547,20 @@ export const App: React.FC = () => {
         particleEffects={particleEffects}
         ghostPieceEnabled={ghostPieceEnabled}
         onColorSchemeChange={handleColorSchemeChange}
-        onSoundToggle={setSoundEnabled}
+        onSoundToggle={(enabled: boolean) => {
+          setSoundEnabled(enabled);
+          soundManager.setEnabled(enabled);
+        }}
         onMusicToggle={setMusicEnabled}
-        onEffectVolumeChange={setEffectVolume}
+        onEffectVolumeChange={(volume: number) => {
+          setEffectVolume(volume);
+          soundManager.setVolume(volume);
+        }}
         onMusicVolumeChange={setMusicVolume}
-        onParticleToggle={setParticleEffects}
+        onParticleToggle={(enabled: boolean) => {
+          setParticleEffects(enabled);
+          effectsManager.setEnabled(enabled);
+        }}
         onGhostPieceToggle={handleGhostPieceToggle}
         onBack={goToMainMenu}
       />
@@ -403,7 +572,7 @@ export const App: React.FC = () => {
       <HighScoresScreen
         colorScheme={colorScheme}
         highScores={highScores}
-        polyominoSize={GAME_CONFIG.polyominoSize}
+        polyominoSize={polyominoSize}
         onBack={goToMainMenu}
       />
     );
@@ -513,6 +682,7 @@ export const App: React.FC = () => {
           ghostPiece={gameState.ghostPiece}
           cellSize={30}
           colorScheme={colorScheme}
+          effectsManager={effectsManager}
         />
         {gameState.status === 'paused' && (
           <div
@@ -570,6 +740,44 @@ export const App: React.FC = () => {
           colorScheme={colorScheme}
           title={gameState.status === 'paused' ? 'Paused' : ''}
         />
+        
+        {gameState.status === 'ready' && (
+          <div style={{ 
+            marginTop: '30px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '10px',
+          }}>
+            <label style={{ 
+              color: colorScheme.colors.text,
+              fontSize: '16px',
+            }}>
+              Polyomino Size:
+            </label>
+            <select
+              value={polyominoSize}
+              onChange={(e) => setPolyominoSize(parseInt(e.target.value) as 4 | 5 | 6 | 7 | 8 | 9)}
+              style={{
+                backgroundColor: colorScheme.colors.ui.button,
+                color: colorScheme.colors.text,
+                border: `2px solid ${colorScheme.colors.ui.border}`,
+                borderRadius: '4px',
+                padding: '5px 10px',
+                fontSize: '16px',
+                fontFamily: 'monospace',
+                cursor: 'pointer',
+              }}
+            >
+              <option value="4">4 - Tetromino</option>
+              <option value="5">5 - Pentomino</option>
+              <option value="6">6 - Hexomino</option>
+              <option value="7">7 - Heptomino</option>
+              <option value="8">8 - Octomino</option>
+              <option value="9">9 - Nonomino</option>
+            </select>
+          </div>
+        )}
       </div>
     </GameLayout>
   );
