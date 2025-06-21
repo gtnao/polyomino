@@ -1,7 +1,6 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { App } from '../App';
-import React from 'react';
 
 // Mock game manager and game loop
 vi.mock('../game/gameManager', () => ({
@@ -97,6 +96,9 @@ vi.mock('../storage/saveManager', () => ({
     isHighScore: vi.fn(() => Promise.resolve(false)),
     addHighScore: vi.fn(() => Promise.resolve()),
     updateStatistics: vi.fn(() => Promise.resolve()),
+    loadConfig: vi.fn(() => Promise.resolve({})),
+    saveConfig: vi.fn(() => Promise.resolve()),
+    clearHighScores: vi.fn(() => Promise.resolve()),
   })),
 }));
 

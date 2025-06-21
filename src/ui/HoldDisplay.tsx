@@ -15,23 +15,16 @@ export const HoldDisplay: React.FC<HoldDisplayProps> = ({
   heldPiece,
   colorScheme,
   canHold,
-  cellSize = 30,
+  cellSize = 20,
   showTitle = false,
   className,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas || !heldPiece) return;
-
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    // Clear canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // Calculate bounds of polyomino
+  
+  // Calculate bounds of held piece to determine canvas size
+  const bounds = React.useMemo(() => {
+    if (!heldPiece) return { canvasSize: 4 };
+    
     let minX = Infinity, maxX = -Infinity;
     let minY = Infinity, maxY = -Infinity;
     
@@ -47,16 +40,30 @@ export const HoldDisplay: React.FC<HoldDisplayProps> = ({
 
     const width = maxX - minX + 1;
     const height = maxY - minY + 1;
+    const canvasSize = Math.max(width, height, 4) + 1;
+    
+    return { minX, minY, maxX, maxY, width, height, canvasSize };
+  }, [heldPiece]);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas || !heldPiece) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Clear canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const { minX = 0, minY = 0, width = 0, height = 0, canvasSize } = bounds;
 
     // Center the piece in the canvas
-    const canvasWidth = 4 * cellSize;
-    const canvasHeight = 4 * cellSize;
-    const offsetX = Math.floor((canvasWidth / cellSize - width) / 2) - minX;
-    const offsetY = Math.floor((canvasHeight / cellSize - height) / 2) - minY;
+    const offsetX = Math.floor((canvasSize - width) / 2) - minX;
+    const offsetY = Math.floor((canvasSize - height) / 2) - minY;
 
-    // Get polyomino color based on size
-    const size = heldPiece.cells.length;
-    const color = getPieceColor(colorScheme, size - 1);
+    // Get polyomino color based on colorIndex
+    const colorIndex = heldPiece.colorIndex || 0;
+    const color = getPieceColor(colorScheme, colorIndex);
 
     // Draw the polyomino cells
     heldPiece.cells.forEach((cell: number[]) => {
@@ -79,7 +86,7 @@ export const HoldDisplay: React.FC<HoldDisplayProps> = ({
         ctx.globalAlpha = 1.0;
       }
     });
-  }, [heldPiece, colorScheme, cellSize, canHold]);
+  }, [heldPiece, colorScheme, cellSize, canHold, bounds]);
 
   const containerStyle: React.CSSProperties = {
     display: 'flex',
@@ -118,8 +125,8 @@ export const HoldDisplay: React.FC<HoldDisplayProps> = ({
       {heldPiece ? (
         <canvas
           ref={canvasRef}
-          width={4 * cellSize}
-          height={4 * cellSize}
+          width={bounds.canvasSize * cellSize}
+          height={bounds.canvasSize * cellSize}
           data-testid="hold-piece-canvas"
           style={{
             display: 'block',
@@ -130,8 +137,8 @@ export const HoldDisplay: React.FC<HoldDisplayProps> = ({
         <div
           data-testid="hold-empty-state"
           style={{
-            width: 4 * cellSize,
-            height: 4 * cellSize,
+            width: bounds.canvasSize * cellSize,
+            height: bounds.canvasSize * cellSize,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',

@@ -66,14 +66,27 @@ export function movePiece(piece: ActivePiece, offset: Coordinate): ActivePiece {
  * @returns The Y position where the piece would land
  */
 export function getGhostPosition(board: Board, piece: ActivePiece): number {
-  let ghostY = piece.position[1];
+  const [x, currentY] = piece.position;
   
-  // Move down until we hit something
-  while (isValidPosition(board, piece.shape, [piece.position[0], ghostY + 1])) {
-    ghostY++;
+  // Binary search for the landing position
+  let low = currentY;
+  let high = board.length - 1;
+  let result = currentY;
+  
+  while (low <= high) {
+    const mid = Math.floor((low + high) / 2);
+    
+    if (isValidPosition(board, piece.shape, [x, mid])) {
+      // Can place here, try lower
+      result = mid;
+      low = mid + 1;
+    } else {
+      // Can't place here, try higher
+      high = mid - 1;
+    }
   }
   
-  return ghostY;
+  return result;
 }
 
 /**

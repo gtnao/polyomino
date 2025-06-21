@@ -30,6 +30,7 @@ interface StatItemProps {
   testId: string;
   colorScheme: ColorScheme;
   size?: 'small' | 'medium' | 'large';
+  tooltip?: string;
 }
 
 const StatItem: React.FC<StatItemProps> = ({ 
@@ -37,7 +38,8 @@ const StatItem: React.FC<StatItemProps> = ({
   value, 
   testId, 
   colorScheme,
-  size = 'medium' 
+  size = 'medium',
+  tooltip
 }) => {
   const fontSize = {
     small: '14px',
@@ -51,15 +53,52 @@ const StatItem: React.FC<StatItemProps> = ({
     large: '16px',
   }[size];
 
+  const containerStyle: React.CSSProperties = {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '2px',
+    position: 'relative',
+  };
+
+  const labelStyle: React.CSSProperties = {
+    color: colorScheme.colors.text,
+    fontSize: labelSize,
+    opacity: 0.8,
+    cursor: tooltip ? 'help' : 'default',
+  };
+
+  const tooltipStyle: React.CSSProperties = {
+    position: 'absolute',
+    bottom: '100%',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    backgroundColor: colorScheme.colors.ui.panel,
+    color: colorScheme.colors.text,
+    padding: '4px 8px',
+    borderRadius: '4px',
+    fontSize: '12px',
+    whiteSpace: 'nowrap',
+    opacity: 0,
+    pointerEvents: 'none',
+    transition: 'opacity 0.2s ease',
+    marginBottom: '4px',
+    border: `1px solid ${colorScheme.colors.ui.border}`,
+  };
+
+  const [showTooltip, setShowTooltip] = React.useState(false);
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+    <div style={containerStyle}>
+      {tooltip && showTooltip && (
+        <span style={{ ...tooltipStyle, opacity: 1 }}>
+          {tooltip}
+        </span>
+      )}
       {label && (
         <span 
-          style={{ 
-            color: colorScheme.colors.text, 
-            fontSize: labelSize,
-            opacity: 0.8,
-          }}
+          style={labelStyle}
+          onMouseEnter={() => tooltip && setShowTooltip(true)}
+          onMouseLeave={() => tooltip && setShowTooltip(false)}
         >
           {label}
         </span>
@@ -114,12 +153,39 @@ export const ScoreDisplay: React.FC<ScoreDisplayProps> = ({
         size="large"
       />
       
-      <StatItem
-        {...(showLabels && { label: 'Level' })}
-        value={stats.level.toString()}
-        testId="level-value"
-        colorScheme={colorScheme}
-      />
+      <div>
+        <StatItem
+          {...(showLabels && { label: 'Level' })}
+          value={stats.level.toString()}
+          testId="level-value"
+          colorScheme={colorScheme}
+        />
+        {/* Level Progress Bar */}
+        <div style={{ marginTop: '4px' }}>
+          <div style={{
+            width: '100%',
+            height: '4px',
+            backgroundColor: colorScheme.colors.ui.border,
+            borderRadius: '2px',
+            overflow: 'hidden',
+          }}>
+            <div style={{
+              width: `${((stats.lines % 5) / 5) * 100}%`,
+              height: '100%',
+              backgroundColor: colorScheme.colors.ui.buttonHover,
+              transition: 'width 0.3s ease',
+            }} />
+          </div>
+          <div style={{
+            fontSize: '10px',
+            color: colorScheme.colors.textSecondary,
+            marginTop: '2px',
+            textAlign: 'center',
+          }}>
+            {5 - (stats.lines % 5)} to next
+          </div>
+        </div>
+      </div>
       
       <StatItem
         {...(showLabels && { label: 'Lines' })}
@@ -147,7 +213,7 @@ export const ScoreDisplay: React.FC<ScoreDisplayProps> = ({
       {showExtendedStats && (
         <>
           <StatItem
-            {...(showLabels && { label: 'APM' })}
+            {...(showLabels && { label: 'APM', tooltip: 'Actions Per Minute' })}
             value={apm.toFixed(1)}
             testId="apm-value"
             colorScheme={colorScheme}
@@ -155,7 +221,7 @@ export const ScoreDisplay: React.FC<ScoreDisplayProps> = ({
           />
           
           <StatItem
-            {...(showLabels && { label: 'PPS' })}
+            {...(showLabels && { label: 'PPS', tooltip: 'Pieces Per Second' })}
             value={pps.toFixed(2)}
             testId="pps-value"
             colorScheme={colorScheme}

@@ -1,15 +1,33 @@
-import type { PieceDefinition, PieceType } from '@/game/types';
-import { generatePolyominoes, getBoundingBox, getAllRotations } from './generator';
+import type { PieceDefinition, PieceType, PolyominoShape } from '@/game/types';
+import { generatePolyominoes, getBoundingBox, getAllRotations, normalizePolyomino } from './generator';
+import { limitPolyominoShapes } from './performance';
 
 // Cache for generated piece definitions
 const pieceDefinitionsCache = new Map<number, PieceDefinition[]>();
+
+// Standard tetromino shapes (all 7 Tetris pieces)
+const TETROMINO_SHAPES: Record<string, PolyominoShape> = {
+  'I': [[0, 0], [1, 0], [2, 0], [3, 0]], // ####
+  'O': [[0, 0], [1, 0], [0, 1], [1, 1]], // ##
+                                          // ##
+  'T': [[0, 0], [1, 0], [2, 0], [1, 1]], // ###
+                                          //  #
+  'S': [[1, 0], [2, 0], [0, 1], [1, 1]], //  ##
+                                          // ##
+  'Z': [[0, 0], [1, 0], [1, 1], [2, 1]], // ##
+                                          //  ##
+  'L': [[0, 0], [1, 0], [2, 0], [2, 1]], // ###
+                                          //   #
+  'J': [[0, 0], [1, 0], [2, 0], [0, 1]], // ###
+                                          // #
+};
 
 // Color palettes for different polyomino sizes
 const colorPalettes: Record<number, string[]> = {
   1: ['#ff6b6b'],
   2: ['#4ecdc4'],
   3: ['#45b7d1', '#f9ca24'],
-  4: ['#00d9ff', '#ffd93d', '#ff6bcb', '#ff9142'], // Tetris-inspired colors
+  4: ['#00d9ff', '#ffd93d', '#ff6bcb', '#ff9142', '#ff4757', '#45b7d1', '#4ecdc4'], // Tetris-inspired colors (7 pieces)
   5: [
     '#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24', '#f0932b',
     '#eb4d4b', '#6ab04c', '#c7ecee', '#dfe6e9', '#4834d4',
@@ -52,30 +70,56 @@ export function getPieceDefinitions(size: number): PieceDefinition[] {
     return pieceDefinitionsCache.get(size)!;
   }
   
-  // Generate polyominoes
-  const polyominoes = generatePolyominoes(size);
+  let definitions: PieceDefinition[];
   
-  // Get colors for this size
-  let colors = colorPalettes[size] || [];
-  if (colors.length < polyominoes.length) {
-    colors = generateDefaultColors(polyominoes.length);
-  }
-  
-  // Create piece definitions
-  const definitions: PieceDefinition[] = polyominoes.map((shape, index) => {
-    const id = generatePieceId(size, index);
-    const rotations = getAllRotations(shape);
-    const boundingBox = getBoundingBox(shape);
-    const color = colors[index % colors.length]!;
+  // Special case for tetrominos - use standard Tetris pieces
+  if (size === 4) {
+    const tetrisOrder = ['I', 'O', 'T', 'S', 'Z', 'L', 'J'];
+    const colors = colorPalettes[4]!;
     
-    return {
-      id,
-      shape,
-      rotations,
-      color,
-      boundingBox
-    };
-  });
+    definitions = tetrisOrder.map((id, index) => {
+      const shape = normalizePolyomino(TETROMINO_SHAPES[id]!);
+      const rotations = getAllRotations(shape);
+      const boundingBox = getBoundingBox(shape);
+      const color = colors[index]!;
+      
+      return {
+        id,
+        shape,
+        rotations,
+        color,
+        boundingBox
+      };
+    });
+  } else {
+    // Generate polyominoes for other sizes
+    let polyominoes = generatePolyominoes(size);
+    
+    // Limit shapes for performance on larger sizes
+    polyominoes = limitPolyominoShapes(polyominoes, size);
+    
+    // Get colors for this size
+    let colors = colorPalettes[size] || [];
+    if (colors.length < polyominoes.length) {
+      colors = generateDefaultColors(polyominoes.length);
+    }
+    
+    // Create piece definitions
+    definitions = polyominoes.map((shape, index) => {
+      const id = generatePieceId(size, index);
+      const rotations = getAllRotations(shape);
+      const boundingBox = getBoundingBox(shape);
+      const color = colors[index % colors.length]!;
+      
+      return {
+        id,
+        shape,
+        rotations,
+        color,
+        boundingBox
+      };
+    });
+  }
   
   // Cache the results
   pieceDefinitionsCache.set(size, definitions);
@@ -92,7 +136,7 @@ export function getPieceDefinitions(size: number): PieceDefinition[] {
 function generatePieceId(size: number, index: number): PieceType {
   // For common sizes, use meaningful names
   if (size === 4) {
-    const tetrisNames = ['I', 'O', 'T', 'S', 'L'];
+    const tetrisNames = ['I', 'O', 'T', 'S', 'Z', 'L', 'J'];
     return tetrisNames[index] || `T${index}`;
   }
   

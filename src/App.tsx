@@ -18,15 +18,45 @@ import {
   SettingsScreen,
   HighScoresScreen,
   PieceStats,
+  KeyBindingsDisplay,
+  Icon,
 } from './ui';
 
 // Default game configuration
 const DEFAULT_GAME_CONFIG = {
   polyominoSize: 5 as const,
-  boardWidth: 10,
-  boardHeight: 20,
-  startLevel: 1,
-  enableAudio: true,
+  boardDimensions: {
+    width: 10,
+    height: 20,
+  },
+  rendering: {
+    cellSize: 30,
+    gridLineWidth: 1,
+    animationDuration: 300,
+  },
+  gameplay: {
+    initialDropInterval: 1000,
+    softDropMultiplier: 0.05,
+    lockDelay: 500,
+    maxLockResets: 15,
+    dasDelay: 167,
+    dasInterval: 33,
+  },
+  features: {
+    ghostPieceEnabled: true,
+    holdEnabled: true,
+    nextPieceCount: 5,
+  },
+  audio: {
+    soundEnabled: true,
+    musicEnabled: true,
+    effectVolume: 0.7,
+    musicVolume: 0.5,
+  },
+  theme: {
+    colorScheme: 'gruvbox' as const,
+    particleEffects: true,
+  },
 };
 
 // DAS (Delayed Auto Shift) configuration
@@ -67,6 +97,7 @@ export const App: React.FC = () => {
   // Save manager for persistent data
   const [saveManager] = useState(() => new SaveManager(createStorageAdapter()));
   const [highScores, setHighScores] = useState<any[]>([]);
+  const [highScoresSize, setHighScoresSize] = useState<number>(polyominoSize);
   const [currentHighScore, setCurrentHighScore] = useState<number>(0);
   
   // Sound manager
@@ -75,10 +106,82 @@ export const App: React.FC = () => {
   // Visual effects manager
   const [effectsManager] = useState(() => new VisualEffectsManager());
 
+  // Load settings on mount
+  useEffect(() => {
+    saveManager.loadConfig().then(config => {
+      if (config.polyominoSize) {
+        setPolyominoSize(config.polyominoSize);
+      }
+      if (config.theme?.colorScheme) {
+        setColorSchemeName(config.theme.colorScheme);
+        setColorScheme(getColorScheme(config.theme.colorScheme));
+      }
+      if (config.features?.ghostPieceEnabled !== undefined) {
+        setGhostPieceEnabled(config.features.ghostPieceEnabled);
+      }
+      if (config.audio?.soundEnabled !== undefined) {
+        setSoundEnabled(config.audio.soundEnabled);
+      }
+      if (config.audio?.musicEnabled !== undefined) {
+        setMusicEnabled(config.audio.musicEnabled);
+        soundManager.setMusicEnabled(config.audio.musicEnabled);
+      }
+      if (config.audio?.effectVolume !== undefined) {
+        setEffectVolume(config.audio.effectVolume);
+        soundManager.setVolume(config.audio.effectVolume);
+      }
+      if (config.audio?.musicVolume !== undefined) {
+        setMusicVolume(config.audio.musicVolume);
+        soundManager.setMusicVolume(config.audio.musicVolume);
+      }
+      if (config.theme?.particleEffects !== undefined) {
+        setParticleEffects(config.theme.particleEffects);
+      }
+    });
+  }, []); // Only run once on mount
+
+  // Save settings when they change
+  useEffect(() => {
+    const saveSettings = async () => {
+      await saveManager.saveConfig({
+        polyominoSize,
+        features: {
+          ghostPieceEnabled,
+          holdEnabled: true,
+          nextPieceCount: 5,
+        },
+        audio: {
+          soundEnabled,
+          musicEnabled,
+          effectVolume,
+          musicVolume,
+        },
+        theme: {
+          colorScheme: colorSchemeName,
+          particleEffects,
+        },
+      });
+    };
+    
+    // Don't save on initial mount
+    const timeoutId = setTimeout(() => {
+      void saveSettings();
+    }, 500);
+    
+    return () => clearTimeout(timeoutId);
+  }, [polyominoSize, colorSchemeName, ghostPieceEnabled, soundEnabled, musicEnabled, effectVolume, musicVolume, particleEffects, saveManager]);
+
+  // Play menu music when on main menu
+  useEffect(() => {
+    if (currentScreen === 'main' && gameState?.status === 'ready') {
+      void soundManager.playMenuMusic();
+    }
+  }, [currentScreen, gameState?.status, soundManager]);
+
   // Load high score on mount and when polyomino size changes
   useEffect(() => {
     saveManager.loadHighScores(polyominoSize).then(scores => {
-      if (scores.length > 0) {
+      if (scores.length > 0 && scores[0]) {
         setCurrentHighScore(scores[0].score);
       } else {
         setCurrentHighScore(0);
@@ -105,11 +208,32 @@ export const App: React.FC = () => {
     const gameConfig = {
       ...DEFAULT_GAME_CONFIG,
       polyominoSize,
-      boardWidth: width,
-      boardHeight: height,
+      boardDimensions: {
+        width,
+        height,
+      },
+      features: {
+        ...DEFAULT_GAME_CONFIG.features,
+        ghostPieceEnabled,
+      },
+      audio: {
+        ...DEFAULT_GAME_CONFIG.audio,
+        soundEnabled,
+        musicEnabled,
+        effectVolume,
+        musicVolume,
+      },
+      theme: {
+        colorScheme: colorSchemeName,
+        particleEffects,
+      },
     };
     
-    const manager = createGameManager(gameConfig, {
+    const manager = createGameManager({
+      ...gameConfig,
+      boardWidth: width,
+      boardHeight: height,
+    }, {
       onGameStart: () => console.log('Game started'),
       onGameEnd: async () => {
         console.log('Game ended');
@@ -124,7 +248,7 @@ export const App: React.FC = () => {
               level: currentState.stats.level,
               lines: currentState.stats.lines,
               time: Math.floor((Date.now() - currentState.stats.gameStartTime) / 1000),
-              date: new Date().toISOString().split('T')[0],
+              date: new Date().toISOString(),
               polyominoSize: polyominoSize,
             });
             
@@ -134,8 +258,10 @@ export const App: React.FC = () => {
             }
           }
           
-          // Play game over sound
+          // Play game over sound and music
           void soundManager.playSound('gameOver');
+          void soundManager.stopMusic();
+          void soundManager.playGameOverMusic();
           
           // Update statistics
           await saveManager.updateStatistics({
@@ -148,11 +274,11 @@ export const App: React.FC = () => {
       },
       onPause: () => {
         console.log('Game paused');
-        soundManager.setEnabled(soundEnabled);
+        soundManager.pause();
       },
       onResume: () => {
         console.log('Game resumed');
-        soundManager.resume();
+        void soundManager.resume();
       },
       onLineClear: (lines) => {
         console.log('Lines cleared:', lines);
@@ -170,6 +296,16 @@ export const App: React.FC = () => {
       onLevelUp: (level) => {
         console.log('Level up:', level);
         void soundManager.playSound('levelUp');
+        const currentState = manager.getGameState();
+        if (currentState) {
+          effectsManager.addLevelUpEffect(
+            level,
+            colorScheme,
+            currentState.config.boardDimensions.width,
+            currentState.config.boardDimensions.height,
+            currentState.config.rendering.cellSize
+          );
+        }
       },
       onPiecePlace: () => {
         void soundManager.playSound('drop');
@@ -214,7 +350,7 @@ export const App: React.FC = () => {
     return () => {
       loop.stop();
     };
-  }, [polyominoSize, saveManager, currentHighScore, soundManager, soundEnabled]);
+  }, [polyominoSize, saveManager, currentHighScore, soundManager, soundEnabled, ghostPieceEnabled, colorSchemeName, particleEffects, musicEnabled, effectVolume, musicVolume, effectsManager, colorScheme]);
 
   // Handle input
   const handleInput = useCallback((action: GameAction) => {
@@ -228,13 +364,17 @@ export const App: React.FC = () => {
     if (gameManager && gameLoop) {
       gameManager.startGame();
       gameLoop.start();
+      // Play game music
+      void soundManager.stopMusic();
+      void soundManager.playGameMusic(gameState?.stats.level || 1);
     }
-  }, [gameManager, gameLoop]);
+  }, [gameManager, gameLoop, soundManager, gameState]);
 
   const pauseGame = useCallback(() => {
     if (gameManager && gameLoop) {
       gameManager.pauseGame();
       gameLoop.pause();
+      setGameState(gameManager.getGameState());
     }
   }, [gameManager, gameLoop]);
 
@@ -242,6 +382,7 @@ export const App: React.FC = () => {
     if (gameManager && gameLoop) {
       gameManager.resumeGame();
       gameLoop.resume();
+      setGameState(gameManager.getGameState());
     }
   }, [gameManager, gameLoop]);
 
@@ -261,8 +402,16 @@ export const App: React.FC = () => {
       gameLoop.stop();
       // Reset to main screen
       setCurrentScreen('main');
+      // Force update the game state to show it's ready
+      const newState = gameManager.getGameState();
+      if (newState) {
+        setGameState({ ...newState, status: 'ready' });
+      }
+      // Switch back to menu music
+      void soundManager.stopMusic();
+      void soundManager.playMenuMusic();
     }
-  }, [gameManager, gameLoop]);
+  }, [gameManager, gameLoop, soundManager]);
 
   // DAS handlers
   const startDAS = useCallback((action: 'moveLeft' | 'moveRight') => {
@@ -302,7 +451,21 @@ export const App: React.FC = () => {
   // Keyboard event handling
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (!gameState || gameState.status !== 'playing') return;
+      if (!gameState) return;
+      
+      // Handle pause/resume separately as it should work in both playing and paused states
+      if (event.code === 'Escape' || event.code === 'KeyP') {
+        event.preventDefault();
+        if (gameState.status === 'playing') {
+          pauseGame();
+        } else if (gameState.status === 'paused') {
+          resumeGame();
+        }
+        return;
+      }
+      
+      // Other keys only work when playing
+      if (gameState.status !== 'playing') return;
 
       switch (event.code) {
         case 'ArrowLeft':
@@ -345,15 +508,6 @@ export const App: React.FC = () => {
           event.preventDefault();
           handleInput('hold');
           break;
-        case 'Escape':
-        case 'KeyP':
-          event.preventDefault();
-          if (gameState.status === 'playing') {
-            pauseGame();
-          } else if (gameState.status === 'paused') {
-            resumeGame();
-          }
-          break;
       }
     };
 
@@ -390,22 +544,23 @@ export const App: React.FC = () => {
   }, []);
 
   const goToHighScores = useCallback(() => {
+    setHighScoresSize(polyominoSize);
     setCurrentScreen('highScores');
-  }, []);
+  }, [polyominoSize]);
 
   const goToMainMenu = useCallback(() => {
     setCurrentScreen('main');
   }, []);
 
   // Menu items for different game states
-  // Load high scores when showing high scores screen
+  // Load high scores when showing high scores screen or size changes
   useEffect(() => {
     if (currentScreen === 'highScores') {
-      saveManager.loadHighScores(polyominoSize).then(scores => {
+      saveManager.loadHighScores(highScoresSize).then(scores => {
         setHighScores(scores);
       });
     }
-  }, [currentScreen, saveManager]);
+  }, [currentScreen, highScoresSize, saveManager]);
 
   const getMenuItems = () => {
     if (!gameState) return [];
@@ -413,20 +568,20 @@ export const App: React.FC = () => {
     switch (gameState.status) {
       case 'ready':
         return [
-          { id: 'start', label: 'Start Game', action: startGame },
-          { id: 'settings', label: 'Settings', action: goToSettings },
-          { id: 'scores', label: 'High Scores', action: goToHighScores },
+          { id: 'start', label: 'Start Game', action: startGame, icon: 'play' as const },
+          { id: 'settings', label: 'Settings', action: goToSettings, icon: 'settings' as const },
+          { id: 'scores', label: 'High Scores', action: goToHighScores, icon: 'trophy' as const },
         ];
       case 'paused':
         return [
-          { id: 'resume', label: 'Resume', action: resumeGame },
-          { id: 'restart', label: 'Restart', action: restartGame },
-          { id: 'quit', label: 'Quit to Menu', action: quitGame },
+          { id: 'resume', label: 'Resume', action: resumeGame, icon: 'play' as const },
+          { id: 'restart', label: 'Restart', action: restartGame, icon: 'restart' as const },
+          { id: 'quit', label: 'Quit to Menu', action: quitGame, icon: 'home' as const },
         ];
       case 'gameover':
         return [
-          { id: 'restart', label: 'Play Again', action: restartGame },
-          { id: 'menu', label: 'Main Menu', action: quitGame },
+          { id: 'restart', label: 'Play Again', action: restartGame, icon: 'restart' as const },
+          { id: 'menu', label: 'Main Menu', action: quitGame, icon: 'home' as const },
         ];
       default:
         return [];
@@ -439,11 +594,24 @@ export const App: React.FC = () => {
     setColorScheme(getColorScheme(scheme));
     // Recreate game manager with new color scheme
     if (gameManager && gameLoop) {
+      const currentState = gameManager.getGameState();
+      if (currentState && currentState.status === 'playing') {
+        // Don't recreate if game is actively playing
+        return;
+      }
+      
       gameLoop.stop();
+      
+      const { width, height } = currentState ? currentState.config.boardDimensions : { width: 10, height: 20 };
       const newManager = createGameManager({
-        ...DEFAULT_GAME_CONFIG,
         polyominoSize,
-        theme: { colorScheme: scheme },
+        boardWidth: width,
+        boardHeight: height,
+        theme: {
+          colorScheme: scheme,
+          particleEffects,
+        },
+        enableAudio: soundEnabled,
       }, {
         onGameStart: () => console.log('Game started'),
         onGameEnd: async () => {
@@ -459,7 +627,7 @@ export const App: React.FC = () => {
                 level: currentState.stats.level,
                 lines: currentState.stats.lines,
                 time: Math.floor((Date.now() - currentState.stats.gameStartTime) / 1000),
-                date: new Date().toISOString().split('T')[0],
+                date: new Date().toISOString(),
                 polyominoSize: polyominoSize,
               });
               
@@ -478,11 +646,11 @@ export const App: React.FC = () => {
         },
         onPause: () => {
           console.log('Game paused');
-          soundManager.setEnabled(soundEnabled);
+          soundManager.pause();
         },
         onResume: () => {
           console.log('Game resumed');
-          soundManager.resume();
+          void soundManager.resume();
         },
         onLineClear: (lines) => {
           console.log('Lines cleared:', lines);
@@ -500,6 +668,16 @@ export const App: React.FC = () => {
         onLevelUp: (level) => {
           console.log('Level up:', level);
           void soundManager.playSound('levelUp');
+          const currentState = newManager.getGameState();
+          if (currentState) {
+            effectsManager.addLevelUpEffect(
+              level,
+              colorScheme,
+              currentState.config.boardDimensions.width,
+              currentState.config.boardDimensions.height,
+              currentState.config.rendering.cellSize
+            );
+          }
         },
         onPiecePlace: () => {
           void soundManager.playSound('drop');
@@ -531,8 +709,115 @@ export const App: React.FC = () => {
   
   const handleGhostPieceToggle = useCallback((enabled: boolean) => {
     setGhostPieceEnabled(enabled);
-    // TODO: Update game config
-  }, []);
+    
+    // Recreate game manager with new ghost piece setting
+    if (gameManager && gameLoop) {
+      const currentState = gameManager.getGameState();
+      if (currentState && currentState.status === 'playing') {
+        // Don't recreate if game is actively playing
+        return;
+      }
+      
+      gameLoop.stop();
+      
+      const { width, height } = currentState ? currentState.config.boardDimensions : { width: 10, height: 20 };
+      const newManager = createGameManager({
+        polyominoSize,
+        boardWidth: width,
+        boardHeight: height,
+        theme: {
+          colorScheme: colorSchemeName,
+          particleEffects,
+        },
+        enableAudio: soundEnabled,
+      }, {
+        onGameStart: () => console.log('Game started'),
+        onGameEnd: async () => {
+          console.log('Game ended');
+          const currentState = newManager.getGameState();
+          if (currentState) {
+            const score = currentState.stats.score;
+            const isHigh = await saveManager.isHighScore(score, polyominoSize);
+            
+            if (isHigh) {
+              await saveManager.addHighScore({
+                score,
+                level: currentState.stats.level,
+                lines: currentState.stats.lines,
+                time: Math.floor((Date.now() - currentState.stats.gameStartTime) / 1000),
+                date: new Date().toISOString(),
+                polyominoSize: polyominoSize,
+              });
+              
+              if (score > currentHighScore) {
+                setCurrentHighScore(score);
+              }
+            }
+            
+            await saveManager.updateStatistics({
+              gamesPlayed: 1,
+              scoreEarned: score,
+              linesCleared: currentState.stats.lines,
+              timePlayed: Math.floor((Date.now() - currentState.stats.gameStartTime) / 1000),
+            });
+          }
+        },
+        onPause: () => {
+          console.log('Game paused');
+          soundManager.pause();
+        },
+        onResume: () => {
+          console.log('Game resumed');
+          void soundManager.resume();
+        },
+        onLineClear: (lines) => {
+          console.log('Lines cleared:', lines);
+          void soundManager.playSound('lineClear');
+          const currentState = newManager.getGameState();
+          if (currentState) {
+            effectsManager.addLineClearEffect(
+              lines, 
+              colorScheme, 
+              currentState.config.boardDimensions.width,
+              currentState.config.rendering.cellSize
+            );
+          }
+        },
+        onLevelUp: (level) => {
+          console.log('Level up:', level);
+          void soundManager.playSound('levelUp');
+          const currentState = newManager.getGameState();
+          if (currentState) {
+            effectsManager.addLevelUpEffect(
+              level,
+              colorScheme,
+              currentState.config.boardDimensions.width,
+              currentState.config.boardDimensions.height,
+              currentState.config.rendering.cellSize
+            );
+          }
+        },
+        onPiecePlace: () => {
+          void soundManager.playSound('drop');
+        },
+        onPieceMove: () => {
+          void soundManager.playSound('move');
+        },
+        onPieceRotate: () => {
+          void soundManager.playSound('rotate');
+        },
+      });
+      
+      setGameManager(newManager);
+      setGameLoop(createGameLoop({
+        onUpdate: (deltaTime: number) => {
+          newManager.update(deltaTime);
+          setGameState(newManager.getGameState());
+        },
+        onRender: () => {},
+      }));
+    }
+  }, [gameManager, gameLoop, polyominoSize, colorSchemeName, particleEffects, soundEnabled, musicEnabled, effectVolume, musicVolume, saveManager, currentHighScore, soundManager, effectsManager, colorScheme]);
   
   // Handle different screen states
   if (currentScreen === 'settings') {
@@ -551,12 +836,27 @@ export const App: React.FC = () => {
           setSoundEnabled(enabled);
           soundManager.setEnabled(enabled);
         }}
-        onMusicToggle={setMusicEnabled}
+        onMusicToggle={async (enabled: boolean) => {
+          setMusicEnabled(enabled);
+          soundManager.setMusicEnabled(enabled);
+          
+          // Resume music when enabled
+          if (enabled) {
+            if (gameState?.status === 'playing') {
+              await soundManager.playGameMusic(gameState.stats.level);
+            } else {
+              await soundManager.playMenuMusic();
+            }
+          }
+        }}
         onEffectVolumeChange={(volume: number) => {
           setEffectVolume(volume);
           soundManager.setVolume(volume);
         }}
-        onMusicVolumeChange={setMusicVolume}
+        onMusicVolumeChange={(volume: number) => {
+          setMusicVolume(volume);
+          soundManager.setMusicVolume(volume);
+        }}
         onParticleToggle={(enabled: boolean) => {
           setParticleEffects(enabled);
           effectsManager.setEnabled(enabled);
@@ -572,8 +872,19 @@ export const App: React.FC = () => {
       <HighScoresScreen
         colorScheme={colorScheme}
         highScores={highScores}
-        polyominoSize={polyominoSize}
+        polyominoSize={highScoresSize}
         onBack={goToMainMenu}
+        onClear={async () => {
+          await saveManager.clearHighScores(highScoresSize);
+          setHighScores([]);
+          // Reset current high score if clearing current size
+          if (highScoresSize === polyominoSize) {
+            setCurrentHighScore(0);
+          }
+        }}
+        onSizeChange={(size) => {
+          setHighScoresSize(size);
+        }}
       />
     );
   }
@@ -628,15 +939,38 @@ export const App: React.FC = () => {
               colorScheme={colorScheme}
               showTitle
             />
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <div style={{
+              padding: '10px',
+              backgroundColor: colorScheme.colors.ui.panel,
+              border: `2px solid ${colorScheme.colors.ui.border}`,
+              borderRadius: '8px',
+              textAlign: 'center',
+            }}>
+              <div style={{
+                color: colorScheme.colors.text,
+                fontSize: '14px',
+                fontFamily: 'monospace',
+              }}>
+                Polyomino Size
+              </div>
+              <div style={{
+                color: colorScheme.colors.text,
+                fontSize: '24px',
+                fontWeight: 'bold',
+                fontFamily: 'monospace',
+              }}>
+                {polyominoSize}
+              </div>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <button
                 style={{
                   backgroundColor: colorScheme.colors.ui.button,
                   color: colorScheme.colors.text,
-                  border: `2px solid ${colorScheme.colors.ui.border}`,
+                  border: `1px solid ${colorScheme.colors.ui.border}`,
                   borderRadius: '4px',
-                  padding: '10px 20px',
-                  fontSize: '16px',
+                  padding: '6px 12px',
+                  fontSize: '12px',
                   fontFamily: 'monospace',
                   cursor: 'pointer',
                 }}
@@ -648,16 +982,19 @@ export const App: React.FC = () => {
                   e.currentTarget.style.backgroundColor = colorScheme.colors.ui.button;
                 }}
               >
-                NEW GAME
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <Icon name="restart" size={14} />
+                  <span>NEW GAME</span>
+                </div>
               </button>
               <button
                 style={{
                   backgroundColor: colorScheme.colors.ui.button,
                   color: colorScheme.colors.text,
-                  border: `2px solid ${colorScheme.colors.ui.border}`,
+                  border: `1px solid ${colorScheme.colors.ui.border}`,
                   borderRadius: '4px',
-                  padding: '10px 20px',
-                  fontSize: '16px',
+                  padding: '6px 12px',
+                  fontSize: '12px',
                   fontFamily: 'monospace',
                   cursor: 'pointer',
                 }}
@@ -669,9 +1006,40 @@ export const App: React.FC = () => {
                   e.currentTarget.style.backgroundColor = colorScheme.colors.ui.button;
                 }}
               >
-                {gameState.status === 'playing' ? 'PAUSE' : 'RESUME'}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <Icon name={gameState.status === 'playing' ? 'pause' : 'play'} size={14} />
+                  <span>{gameState.status === 'playing' ? 'PAUSE' : 'RESUME'}</span>
+                </div>
+              </button>
+              <button
+                style={{
+                  backgroundColor: colorScheme.colors.ui.button,
+                  color: colorScheme.colors.text,
+                  border: `1px solid ${colorScheme.colors.ui.border}`,
+                  borderRadius: '4px',
+                  padding: '6px 12px',
+                  fontSize: '12px',
+                  fontFamily: 'monospace',
+                  cursor: 'pointer',
+                }}
+                onClick={quitGame}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = colorScheme.colors.ui.buttonHover;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = colorScheme.colors.ui.button;
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <Icon name="home" size={14} />
+                  <span>MAIN MENU</span>
+                </div>
               </button>
             </div>
+            <KeyBindingsDisplay
+              colorScheme={colorScheme}
+              showTitle
+            />
           </div>
         }
         fullscreen
@@ -738,10 +1106,10 @@ export const App: React.FC = () => {
         <Menu
           items={getMenuItems()}
           colorScheme={colorScheme}
-          title={gameState.status === 'paused' ? 'Paused' : ''}
+          title=""
         />
         
-        {gameState.status === 'ready' && (
+        {gameState?.status === 'ready' && (
           <div style={{ 
             marginTop: '30px',
             display: 'flex',

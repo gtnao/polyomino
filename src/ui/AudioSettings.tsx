@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import type { ColorScheme } from '../game/types';
+import { Breadcrumb } from './Breadcrumb';
+import { Icon } from './Icon';
 
 interface AudioSettingsProps {
   colorScheme: ColorScheme;
@@ -37,6 +39,7 @@ export const AudioSettings: React.FC<AudioSettingsProps> = ({
     backgroundColor: colors.background,
     color: colors.text,
     fontFamily: 'monospace',
+    position: 'relative',
   };
   
   const panelStyle: React.CSSProperties = {
@@ -76,17 +79,18 @@ export const AudioSettings: React.FC<AudioSettingsProps> = ({
     cursor: 'pointer',
   };
   
-  const buttonStyle: React.CSSProperties = {
-    backgroundColor: colors.ui.button,
-    color: colors.text,
-    border: `2px solid ${colors.ui.border}`,
+  const backButtonStyle: React.CSSProperties = {
+    backgroundColor: 'transparent',
+    color: colors.textSecondary,
+    border: 'none',
     borderRadius: '4px',
     padding: '10px 20px',
     fontSize: '16px',
     fontFamily: 'monospace',
     cursor: 'pointer',
-    marginTop: '20px',
-    width: '100%',
+    marginTop: '30px',
+    transition: 'color 0.2s ease',
+    textDecoration: 'underline',
   };
   
   const volumeDisplayStyle: React.CSSProperties = {
@@ -96,12 +100,23 @@ export const AudioSettings: React.FC<AudioSettingsProps> = ({
   
   return (
     <div style={containerStyle}>
+      <Breadcrumb
+        items={[
+          { label: 'Main Menu', onClick: onBack },
+          { label: 'Settings', onClick: onBack },
+          { label: 'Audio' },
+        ]}
+        colorScheme={colorScheme}
+      />
       <div style={panelStyle}>
         <h2 style={titleStyle}>Audio Settings</h2>
         
         <div style={settingStyle}>
           <label style={labelStyle}>
-            <span>Sound Effects</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Icon name={soundEnabled ? 'audio' : 'audioOff'} size={20} />
+              <span>Sound Effects</span>
+            </span>
             <input
               type="checkbox"
               checked={soundEnabled}
@@ -113,7 +128,10 @@ export const AudioSettings: React.FC<AudioSettingsProps> = ({
         
         <div style={settingStyle}>
           <label style={labelStyle}>
-            <span>Background Music</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Icon name={musicEnabled ? 'music' : 'musicOff'} size={20} />
+              <span>Background Music</span>
+            </span>
             <input
               type="checkbox"
               checked={musicEnabled}
@@ -166,16 +184,16 @@ export const AudioSettings: React.FC<AudioSettingsProps> = ({
         </div>
         
         <button
-          style={buttonStyle}
+          style={backButtonStyle}
           onClick={onBack}
           onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = colors.ui.buttonHover;
+            e.currentTarget.style.color = colors.text;
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = colors.ui.button;
+            e.currentTarget.style.color = colors.textSecondary;
           }}
         >
-          Back
+          ← Back to Settings
         </button>
       </div>
     </div>

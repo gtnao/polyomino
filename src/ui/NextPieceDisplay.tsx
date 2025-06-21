@@ -19,17 +19,8 @@ const PiecePreview: React.FC<{
 }> = ({ polyomino, colorScheme, cellSize, index }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    // Clear canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // Calculate bounds of polyomino
+  // Calculate bounds of polyomino to determine canvas size
+  const bounds = React.useMemo(() => {
     let minX = Infinity, maxX = -Infinity;
     let minY = Infinity, maxY = -Infinity;
     
@@ -45,10 +36,28 @@ const PiecePreview: React.FC<{
 
     const width = maxX - minX + 1;
     const height = maxY - minY + 1;
+    
+    // Use a canvas size that can fit the piece with some padding
+    const canvasSize = Math.max(width, height, 3) + 1;
+    
+    return { minX, minY, maxX, maxY, width, height, canvasSize };
+  }, [polyomino]);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Clear canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const { minX, minY, width, height, canvasSize } = bounds;
 
     // Center the piece in the canvas
-    const offsetX = Math.floor((3 - width) / 2) - minX;
-    const offsetY = Math.floor((3 - height) / 2) - minY;
+    const offsetX = Math.floor((canvasSize - width) / 2) - minX;
+    const offsetY = Math.floor((canvasSize - height) / 2) - minY;
 
     // Get polyomino color based on colorIndex
     const colorIndex = polyomino.colorIndex || 0;
@@ -71,13 +80,13 @@ const PiecePreview: React.FC<{
         ctx.strokeRect(pixelX, pixelY, cellSize, cellSize);
       }
     });
-  }, [polyomino, colorScheme, cellSize]);
+  }, [polyomino, colorScheme, cellSize, bounds]);
 
   return (
     <canvas
       ref={canvasRef}
-      width={3 * cellSize}
-      height={3 * cellSize}
+      width={bounds.canvasSize * cellSize}
+      height={bounds.canvasSize * cellSize}
       data-testid={`next-piece-${index}`}
     />
   );
@@ -86,7 +95,7 @@ const PiecePreview: React.FC<{
 export const NextPieceDisplay: React.FC<NextPieceDisplayProps> = ({
   nextPieces,
   colorScheme,
-  cellSize = 30,
+  cellSize = 20,
   maxPieces = 5,
   showTitle = false,
   className,
@@ -132,7 +141,7 @@ export const NextPieceDisplay: React.FC<NextPieceDisplayProps> = ({
           <PiecePreview
             polyomino={polyomino}
             colorScheme={colorScheme}
-            cellSize={cellSize * (1 - index * 0.1)}
+            cellSize={cellSize * (1 - index * 0.05)}
             index={index}
           />
         </div>

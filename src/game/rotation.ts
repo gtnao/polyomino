@@ -2,7 +2,7 @@
  * Rotation system with shape transformation and kick tables
  */
 
-import type { PolyominoShape, Coordinate, Rotation } from './types';
+import type { PolyominoShape, Coordinate } from './types';
 
 /**
  * Kick table offsets for SRS-style rotation

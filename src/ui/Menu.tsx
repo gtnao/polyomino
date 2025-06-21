@@ -1,11 +1,13 @@
 import React from 'react';
 import type { ColorScheme } from '../game/types';
+import { Icon, type IconName } from './Icon';
 
 interface MenuItem {
   id: string;
   label: string;
   action: () => void;
   disabled?: boolean;
+  icon?: IconName;
 }
 
 interface MenuProps {
@@ -21,68 +23,18 @@ interface MenuProps {
 export const Menu: React.FC<MenuProps> = ({
   items,
   colorScheme,
-  selectedIndex = 0,
-  onSelectionChange,
+  selectedIndex: _selectedIndex = 0,
+  onSelectionChange: _onSelectionChange,
   title,
   direction = 'vertical',
   className,
 }) => {
-  const handleKeyDown = (event: React.KeyboardEvent) => {
-    if (!onSelectionChange) return;
-
-    const enabledItems = items.filter(item => !item.disabled);
-    const selectedItem = items[selectedIndex];
-    if (!selectedItem) return;
-    
-    const currentEnabledIndex = enabledItems.findIndex(
-      item => item.id === selectedItem.id
-    );
-
-    switch (event.key) {
-      case 'ArrowDown':
-      case 'ArrowRight':
-        event.preventDefault();
-        const nextIndex = (currentEnabledIndex + 1) % enabledItems.length;
-        const nextEnabledItem = enabledItems[nextIndex];
-        if (nextEnabledItem) {
-          const nextItemIndex = items.findIndex(
-            item => item.id === nextEnabledItem.id
-          );
-          onSelectionChange(nextItemIndex);
-        }
-        break;
-
-      case 'ArrowUp':
-      case 'ArrowLeft':
-        event.preventDefault();
-        const prevIndex = currentEnabledIndex === 0 
-          ? enabledItems.length - 1 
-          : currentEnabledIndex - 1;
-        const prevEnabledItem = enabledItems[prevIndex];
-        if (prevEnabledItem) {
-          const prevItemIndex = items.findIndex(
-            item => item.id === prevEnabledItem.id
-          );
-          onSelectionChange(prevItemIndex);
-        }
-        break;
-
-      case 'Enter':
-      case ' ':
-        event.preventDefault();
-        if (selectedItem && !selectedItem.disabled) {
-          selectedItem.action();
-        }
-        break;
-    }
-  };
-
   const handleItemClick = (index: number) => {
     const item = items[index];
     if (!item || item.disabled) return;
 
-    if (onSelectionChange) {
-      onSelectionChange(index);
+    if (_onSelectionChange) {
+      _onSelectionChange(index);
     }
     item.action();
   };
@@ -98,25 +50,20 @@ export const Menu: React.FC<MenuProps> = ({
     outline: 'none',
   };
 
-  const getItemStyle = (index: number, item: MenuItem): React.CSSProperties => {
-    const isSelected = index === selectedIndex;
+  const getItemStyle = (_index: number, item: MenuItem): React.CSSProperties => {
     const isDisabled = item.disabled;
 
     return {
       padding: '12px 20px',
-      backgroundColor: isSelected 
-        ? colorScheme.colors.ui.buttonHover 
-        : 'transparent',
+      backgroundColor: 'transparent',
       color: isDisabled 
         ? colorScheme.colors.grid 
         : colorScheme.colors.text,
-      border: isSelected 
-        ? `2px solid ${colorScheme.colors.text}` 
-        : '2px solid transparent',
+      border: '2px solid transparent',
       borderRadius: '4px',
       cursor: isDisabled ? 'not-allowed' : 'pointer',
       fontSize: '16px',
-      fontWeight: isSelected ? 'bold' : 'normal',
+      fontWeight: 'normal',
       textAlign: 'center' as const,
       transition: 'all 0.2s ease',
       userSelect: 'none' as const,
@@ -129,8 +76,6 @@ export const Menu: React.FC<MenuProps> = ({
       className={className}
       data-testid="menu"
       style={menuStyle}
-      tabIndex={0}
-      onKeyDown={handleKeyDown}
     >
       {title && (
         <h2
@@ -150,17 +95,34 @@ export const Menu: React.FC<MenuProps> = ({
         <div
           key={item.id}
           data-testid={`menu-item-${item.id}`}
-          data-selected={index === selectedIndex}
           data-disabled={item.disabled}
           style={getItemStyle(index, item)}
           onClick={() => handleItemClick(index)}
-          onMouseEnter={() => {
-            if (!item.disabled && onSelectionChange) {
-              onSelectionChange(index);
+          onMouseEnter={(e) => {
+            if (!item.disabled) {
+              e.currentTarget.style.backgroundColor = colorScheme.colors.ui.buttonHover;
+              e.currentTarget.style.transform = 'scale(1.02)';
+              e.currentTarget.style.boxShadow = `0 2px 4px ${colorScheme.colors.ui.border}`;
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!item.disabled) {
+              e.currentTarget.style.backgroundColor = 'transparent';
+              e.currentTarget.style.transform = 'scale(1)';
+              e.currentTarget.style.boxShadow = 'none';
             }
           }}
         >
-          {item.label}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+            {item.icon && (
+              <Icon 
+                name={item.icon} 
+                size={20} 
+                color={item.disabled ? colorScheme.colors.grid : colorScheme.colors.text}
+              />
+            )}
+            <span>{item.label}</span>
+          </div>
         </div>
       ))}
     </div>

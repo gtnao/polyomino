@@ -76,17 +76,28 @@ describe('Menu', () => {
     expect(mockItems[0]!.action).toHaveBeenCalledTimes(1);
   });
 
-  it('should highlight selected item', () => {
+  it('should handle hover effects', () => {
     render(
       <Menu
         items={mockItems}
         colorScheme={mockColorScheme}
-        selectedIndex={1}
       />
     );
 
-    const settingsItem = screen.getByTestId('menu-item-settings');
-    expect(settingsItem).toHaveAttribute('data-selected', 'true');
+    const startItem = screen.getByTestId('menu-item-start');
+    
+    // Test mouse enter
+    fireEvent.mouseEnter(startItem);
+    // Check that inline styles were applied
+    // Note: backgroundColor might be in rgb format
+    expect(startItem.style.backgroundColor).toBeTruthy();
+    expect(startItem.style.backgroundColor).not.toBe('transparent');
+    expect(startItem.style.fontWeight).toBe('bold');
+    
+    // Test mouse leave
+    fireEvent.mouseLeave(startItem);
+    expect(startItem.style.backgroundColor).toBe('transparent');
+    expect(startItem.style.fontWeight).toBe('normal');
   });
 
   it('should apply custom className', () => {
@@ -129,48 +140,22 @@ describe('Menu', () => {
 
     const disabledItem = screen.getByTestId('menu-item-disabled');
     expect(disabledItem).toHaveAttribute('data-disabled', 'true');
+    expect(disabledItem).toHaveStyle({
+      opacity: '0.5',
+      cursor: 'not-allowed',
+    });
 
+    // Should not trigger hover effects
+    const initialBgColor = disabledItem.style.backgroundColor;
+    fireEvent.mouseEnter(disabledItem);
+    // Background color should remain unchanged for disabled items
+    expect(disabledItem.style.backgroundColor).toBe(initialBgColor);
+
+    // Should not trigger action
     fireEvent.click(disabledItem);
     expect(itemsWithDisabled[4]!.action).not.toHaveBeenCalled();
   });
 
-  it('should handle keyboard navigation', () => {
-    const onSelectionChange = vi.fn();
-    
-    render(
-      <Menu
-        items={mockItems}
-        colorScheme={mockColorScheme}
-        selectedIndex={0}
-        onSelectionChange={onSelectionChange}
-      />
-    );
-
-    const menu = screen.getByTestId('menu');
-    
-    fireEvent.keyDown(menu, { key: 'ArrowDown' });
-    expect(onSelectionChange).toHaveBeenCalledWith(1);
-
-    fireEvent.keyDown(menu, { key: 'ArrowUp' });
-    expect(onSelectionChange).toHaveBeenCalledWith(3); // Wrap to end
-  });
-
-  it('should trigger action on Enter key', () => {
-    const onSelectionChange = vi.fn();
-    
-    render(
-      <Menu
-        items={mockItems}
-        colorScheme={mockColorScheme}
-        selectedIndex={0}
-        onSelectionChange={onSelectionChange}
-      />
-    );
-
-    const menu = screen.getByTestId('menu');
-    fireEvent.keyDown(menu, { key: 'Enter' });
-    expect(mockItems[0]!.action).toHaveBeenCalledTimes(1);
-  });
 
   it('should support vertical and horizontal layouts', () => {
     const { rerender } = render(

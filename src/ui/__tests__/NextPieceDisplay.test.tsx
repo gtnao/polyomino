@@ -7,18 +7,21 @@ describe('NextPieceDisplay', () => {
   const mockPolyominoes: Polyomino[] = [
     {
       id: 'piece1',
-      cells: [[1, 1], [1, 0]],
+      cells: [[0, 0], [1, 0], [0, 1], [1, 1]], // 2x2 square
       rotations: 4,
+      colorIndex: 0,
     },
     {
       id: 'piece2',
-      cells: [[1, 1, 1]],
+      cells: [[0, 0], [1, 0], [2, 0]], // 3x1 line
       rotations: 2,
+      colorIndex: 1,
     },
     {
       id: 'piece3',
-      cells: [[1, 0], [1, 1]],
+      cells: [[0, 0], [1, 0], [1, 1]], // L shape
       rotations: 4,
+      colorIndex: 2,
     },
   ];
 
@@ -108,7 +111,7 @@ describe('NextPieceDisplay', () => {
     );
 
     const canvases = screen.getAllByTestId(/^next-piece-\d+$/);
-    expect(canvases[0]).toHaveAttribute('width', '60'); // 3 cells * 20
+    expect(canvases[0]).toHaveAttribute('width', '80'); // (max(2,2,3) + 1) * 20 = 4 * 20
   });
 
   it('should limit displayed pieces to maxPieces', () => {

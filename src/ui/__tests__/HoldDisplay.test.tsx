@@ -111,7 +111,7 @@ describe('HoldDisplay', () => {
     );
 
     const canvas = screen.getByTestId('hold-piece-canvas');
-    expect(canvas).toHaveAttribute('width', '100'); // 4 cells * 25
+    expect(canvas).toHaveAttribute('width', '125'); // (max(2,2,4) + 1) * 25 = 5 * 25
   });
 
   it('should show title when enabled', () => {

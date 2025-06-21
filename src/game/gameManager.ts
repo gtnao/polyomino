@@ -13,6 +13,7 @@ import type {
   ActivePiece,
   Coordinate,
   Board,
+  ColorSchemeName,
 } from './types';
 import { generatePolyominoes } from '../polyomino/generator';
 import { createEmptyBoard, placePiece, getFilledLines, clearLines } from './board';
@@ -31,7 +32,8 @@ export interface GameManagerConfig {
   startLevel?: number;
   enableAudio?: boolean;
   theme?: {
-    colorScheme?: string;
+    colorScheme?: ColorSchemeName;
+    particleEffects?: boolean;
   };
 }
 
@@ -79,13 +81,13 @@ function createPiece(
   position: Coordinate,
   rotation: number = 0,
   colorIndex: number = 0,
-  colorScheme: string = 'gruvbox'
+  colorScheme: ColorSchemeName = 'gruvbox'
 ): ActivePiece {
-  const theme = getColorScheme(colorScheme as any);
+  const theme = getColorScheme(colorScheme);
   const pieceColors = theme.colors.pieces;
   const baseColor = pieceColors[colorIndex % pieceColors.length];
   // Apply color variation based on piece ID
-  const actualColor = getColorVariation(baseColor, id, colorIndex);
+  const actualColor = baseColor ? getColorVariation(baseColor, id, colorIndex) : '#888888';
   
   return {
     type: id,
@@ -125,22 +127,34 @@ function rotatePiece(piece: ActivePiece, clockwise: boolean): ActivePiece {
 }
 
 /**
- * Gets the ghost position for a piece
+ * Gets the ghost position for a piece using binary search
  */
 function getGhostPosition(
   board: Board,
   shape: PolyominoShape,
   position: Coordinate
 ): Coordinate {
-  let ghostY = position[1];
-  const maxY = 30; // Safety limit to prevent infinite loops
+  const [x, currentY] = position;
   
-  // Move down until collision or safety limit
-  while (ghostY < maxY && !checkCollision(board, shape, [position[0], ghostY + 1])) {
-    ghostY++;
+  // Binary search for the landing position
+  let low = currentY;
+  let high = board.length - 1;
+  let result = currentY;
+  
+  while (low <= high) {
+    const mid = Math.floor((low + high) / 2);
+    
+    if (!checkCollision(board, shape, [x, mid])) {
+      // Can place here, try lower
+      result = mid;
+      low = mid + 1;
+    } else {
+      // Can't place here, try higher
+      high = mid - 1;
+    }
   }
   
-  return [position[0], ghostY] as const;
+  return [x, result] as const;
 }
 
 /**
@@ -171,6 +185,13 @@ export function createGameManager(
   let pieceBag = createBag(polyominoes.map(p => p.id));
   let nextPieces: Polyomino[] = [];
   let canHold = true;
+  
+  // Ghost piece cache to avoid redundant calculations
+  const ghostPieceCache: { position: Coordinate | null; pieceX: number; pieceShape: PolyominoShape | null } = {
+    position: null,
+    pieceX: -1,
+    pieceShape: null
+  };
 
   /**
    * Creates the initial game state
@@ -210,7 +231,7 @@ export function createGameManager(
         musicVolume: 0.5,
       },
       theme: {
-        colorScheme: (config.theme?.colorScheme || 'gruvbox') as any,
+        colorScheme: config.theme?.colorScheme || 'gruvbox',
         particleEffects: true,
       },
     };
@@ -290,18 +311,38 @@ export function createGameManager(
   }
 
   /**
-   * Updates the ghost piece position
+   * Updates the ghost piece position with caching
    */
   function updateGhostPiece(): GhostPiece | null {
     if (!gameState.currentPiece || !gameState.config.features.ghostPieceEnabled) {
+      ghostPieceCache.position = null;
       return null;
     }
 
-    const ghostPosition = getGhostPosition(gameState.board, gameState.currentPiece.shape, gameState.currentPiece.position);
+    const currentX = gameState.currentPiece.position[0];
+    const currentShape = gameState.currentPiece.shape;
+    
+    // Check if we can use cached position
+    if (ghostPieceCache.position && 
+        ghostPieceCache.pieceX === currentX && 
+        ghostPieceCache.pieceShape === currentShape) {
+      return {
+        position: ghostPieceCache.position,
+        shape: currentShape,
+      };
+    }
+
+    // Calculate new ghost position
+    const ghostPosition = getGhostPosition(gameState.board, currentShape, gameState.currentPiece.position);
+    
+    // Update cache
+    ghostPieceCache.position = ghostPosition;
+    ghostPieceCache.pieceX = currentX;
+    ghostPieceCache.pieceShape = currentShape;
     
     return {
       position: ghostPosition,
-      shape: gameState.currentPiece.shape,
+      shape: currentShape,
     };
   }
 

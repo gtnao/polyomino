@@ -281,16 +281,23 @@ export class MusicPlayer {
       const noteDuration = note.duration * beatDuration;
 
       // Check if note should be scheduled
-      let scheduleTime = noteTime;
+      const scheduleTime = noteTime;
       
       if (this.currentTrack.loop) {
-        // Handle looping
-        while (scheduleTime < scheduleUntil) {
-          if (scheduleTime >= loopPosition && 
-              !this.isNoteScheduled(scheduleTime)) {
-            this.scheduleNote(note, this.startTime + scheduleTime, noteDuration);
-          }
-          scheduleTime += trackDuration;
+        // Handle looping - calculate which loop iteration we're in
+        const currentLoop = Math.floor(elapsed / trackDuration);
+        const nextLoop = currentLoop + 1;
+        
+        // Schedule notes for current loop
+        const currentLoopTime = noteTime + currentLoop * trackDuration;
+        if (currentLoopTime >= elapsed && currentLoopTime < elapsed + scheduleAhead) {
+          this.scheduleNote(note, this.startTime + currentLoopTime, noteDuration);
+        }
+        
+        // Schedule notes for next loop if needed
+        const nextLoopTime = noteTime + nextLoop * trackDuration;
+        if (nextLoopTime < elapsed + scheduleAhead) {
+          this.scheduleNote(note, this.startTime + nextLoopTime, noteDuration);
         }
       } else {
         // Non-looping

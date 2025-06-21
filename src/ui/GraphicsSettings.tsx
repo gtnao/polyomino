@@ -1,5 +1,7 @@
 import React from 'react';
 import type { ColorScheme, ColorSchemeName } from '../game/types';
+import { Breadcrumb } from './Breadcrumb';
+import { Icon } from './Icon';
 
 interface GraphicsSettingsProps {
   colorScheme: ColorScheme;
@@ -42,6 +44,7 @@ export const GraphicsSettings: React.FC<GraphicsSettingsProps> = ({
     backgroundColor: colors.background,
     color: colors.text,
     fontFamily: 'monospace',
+    position: 'relative',
   };
   
   const panelStyle: React.CSSProperties = {
@@ -87,17 +90,18 @@ export const GraphicsSettings: React.FC<GraphicsSettingsProps> = ({
     cursor: 'pointer',
   };
   
-  const buttonStyle: React.CSSProperties = {
-    backgroundColor: colors.ui.button,
-    color: colors.text,
-    border: `2px solid ${colors.ui.border}`,
+  const backButtonStyle: React.CSSProperties = {
+    backgroundColor: 'transparent',
+    color: colors.textSecondary,
+    border: 'none',
     borderRadius: '4px',
     padding: '10px 20px',
     fontSize: '16px',
     fontFamily: 'monospace',
     cursor: 'pointer',
-    marginTop: '20px',
-    width: '100%',
+    marginTop: '30px',
+    transition: 'color 0.2s ease',
+    textDecoration: 'underline',
   };
   
   const colorPreviewStyle: React.CSSProperties = {
@@ -115,6 +119,14 @@ export const GraphicsSettings: React.FC<GraphicsSettingsProps> = ({
   
   return (
     <div style={containerStyle}>
+      <Breadcrumb
+        items={[
+          { label: 'Main Menu', onClick: onBack },
+          { label: 'Settings', onClick: onBack },
+          { label: 'Graphics' },
+        ]}
+        colorScheme={colorScheme}
+      />
       <div style={panelStyle}>
         <h2 style={titleStyle}>Graphics Settings</h2>
         
@@ -142,7 +154,10 @@ export const GraphicsSettings: React.FC<GraphicsSettingsProps> = ({
         
         <div style={settingStyle}>
           <label style={labelStyle}>
-            <span>Ghost Piece</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Icon name={ghostPieceEnabled ? 'eye' : 'eyeOff'} size={20} />
+              <span>Ghost Piece</span>
+            </span>
             <input
               type="checkbox"
               checked={ghostPieceEnabled}
@@ -165,16 +180,16 @@ export const GraphicsSettings: React.FC<GraphicsSettingsProps> = ({
         </div>
         
         <button
-          style={buttonStyle}
+          style={backButtonStyle}
           onClick={onBack}
           onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = colors.ui.buttonHover;
+            e.currentTarget.style.color = colors.text;
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = colors.ui.button;
+            e.currentTarget.style.color = colors.textSecondary;
           }}
         >
-          Back
+          ← Back to Settings
         </button>
       </div>
     </div>

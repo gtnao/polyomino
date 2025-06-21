@@ -52,8 +52,9 @@ function getLineClearScore(lines: number): number {
  * @returns Current level (1-20)
  */
 export function calculateLevel(lines: number): number {
-  const level = Math.floor(lines / 10) + 1;
-  return Math.min(level, 20); // Cap at level 20
+  // Level up every 5 lines for more constant progression
+  const level = Math.floor(lines / 5) + 1;
+  return Math.min(level, 99); // Increase cap to level 99
 }
 
 /**

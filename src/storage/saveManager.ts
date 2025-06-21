@@ -117,6 +117,16 @@ export class SaveManager {
   }
 
   /**
+   * Clears all high scores for a specific polyomino size
+   * @param polyominoSize - Size of polyomino
+   */
+  async clearHighScores(polyominoSize: number): Promise<void> {
+    const data = await this.load();
+    data.highScores[polyominoSize] = [];
+    await this.save(data);
+  }
+
+  /**
    * Checks if a score qualifies as a high score
    * @param score - Score to check
    * @param size - Polyomino size

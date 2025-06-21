@@ -3,7 +3,7 @@ import type { ColorScheme, ColorSchemeName } from '../game/types';
 import { Menu } from './Menu';
 import { AudioSettings } from './AudioSettings';
 import { GraphicsSettings } from './GraphicsSettings';
-import { ControlsSettings } from './ControlsSettings';
+import { Breadcrumb } from './Breadcrumb';
 
 export interface SettingsScreenProps {
   colorScheme: ColorScheme;
@@ -24,7 +24,7 @@ export interface SettingsScreenProps {
   onBack: () => void;
 }
 
-type SettingsView = 'main' | 'audio' | 'controls' | 'graphics';
+type SettingsView = 'main' | 'audio' | 'graphics';
 
 export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   colorScheme,
@@ -67,14 +67,6 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     );
   }
 
-  if (currentView === 'controls') {
-    return (
-      <ControlsSettings
-        colorScheme={colorScheme}
-        onBack={handleBack}
-      />
-    );
-  }
 
   if (currentView === 'graphics') {
     return (
@@ -92,10 +84,9 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   }
 
   const menuItems = [
-    { id: 'audio', label: 'Audio Settings', action: () => setCurrentView('audio') },
-    { id: 'controls', label: 'Controls', action: () => setCurrentView('controls') },
-    { id: 'graphics', label: 'Graphics', action: () => setCurrentView('graphics') },
-    { id: 'back', label: 'Back to Main Menu', action: onBack },
+    { id: 'audio', label: 'Audio Settings', action: () => setCurrentView('audio'), icon: 'audio' as const },
+    { id: 'graphics', label: 'Graphics', action: () => setCurrentView('graphics'), icon: 'palette' as const },
+    { id: 'back', label: 'Back', action: onBack, icon: 'back' as const },
   ];
 
   return (
@@ -110,8 +101,16 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         backgroundColor: colorScheme.colors.background,
         color: colorScheme.colors.text,
         fontFamily: 'monospace',
+        position: 'relative',
       }}
     >
+      <Breadcrumb
+        items={[
+          { label: 'Main Menu', onClick: onBack },
+          { label: 'Settings' },
+        ]}
+        colorScheme={colorScheme}
+      />
       <h1
         style={{
           color: colorScheme.colors.text,

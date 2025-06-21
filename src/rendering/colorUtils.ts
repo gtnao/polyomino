@@ -23,7 +23,7 @@ export function adjustBrightness(color: string, amount: number): string {
   const newB = Math.max(0, Math.min(255, b + amount));
   
   // Convert back to hex
-  const toHex = (n: number) => n.toString(16).padStart(2, '0');
+  const toHex = (n: number): string => n.toString(16).padStart(2, '0');
   return `#${toHex(newR)}${toHex(newG)}${toHex(newB)}`;
 }
 
@@ -71,11 +71,11 @@ export function adjustSaturation(color: string, amount: number): string {
   
   // Convert HSL back to RGB
   function hue2rgb(p: number, q: number, t: number): number {
-    if (t < 0) t += 1;
-    if (t > 1) t -= 1;
-    if (t < 1/6) return p + (q - p) * 6 * t;
-    if (t < 1/2) return q;
-    if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+    if (t < 0) {t += 1;}
+    if (t > 1) {t -= 1;}
+    if (t < 1/6) {return p + (q - p) * 6 * t;}
+    if (t < 1/2) {return q;}
+    if (t < 2/3) {return p + (q - p) * (2/3 - t) * 6;}
     return p;
   }
   
@@ -92,7 +92,7 @@ export function adjustSaturation(color: string, amount: number): string {
   }
   
   // Convert back to hex
-  const toHex = (n: number) => Math.round(n * 255).toString(16).padStart(2, '0');
+  const toHex = (n: number): string => Math.round(n * 255).toString(16).padStart(2, '0');
   return `#${toHex(newR)}${toHex(newG)}${toHex(newB)}`;
 }
 
@@ -103,7 +103,7 @@ export function adjustSaturation(color: string, amount: number): string {
  * @param colorIndex - Color index
  * @returns Varied color
  */
-export function getColorVariation(baseColor: string, pieceId: string, colorIndex: number): string {
+export function getColorVariation(baseColor: string, pieceId: string, _colorIndex: number): string {
   // Use piece ID to generate consistent variations
   let hash = 0;
   for (let i = 0; i < pieceId.length; i++) {

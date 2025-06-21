@@ -14,3 +14,7 @@ export { AudioSettings } from './AudioSettings';
 export { GraphicsSettings } from './GraphicsSettings';
 export { ControlsSettings } from './ControlsSettings';
 export { PieceStats } from './PieceStats';
+export { KeyBindingsDisplay } from './KeyBindingsDisplay';
+export { Breadcrumb } from './Breadcrumb';
+export { Icon } from './Icon';
+export type { IconName, IconProps } from './Icon';
