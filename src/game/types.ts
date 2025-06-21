@@ -43,7 +43,7 @@ export type AppScreen =
 // ============================================
 
 export interface GameConfig {
-  polyominoSize: 3 | 4 | 5 | 6 | 7 | 8 | 9;
+  polyominoSize: 3 | 4 | 5 | 6 | 7;
   boardDimensions: {
     width: number;
     height: number;

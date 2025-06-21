@@ -13,17 +13,17 @@ import type { GameStats } from '../types';
 describe('calculateScore', () => {
   it('should calculate score for piece placement', () => {
     const score = calculateScore('place', 1, 0);
-    expect(score).toBe(10);
+    expect(score).toBe(0); // No score for placement
   });
 
   it('should calculate score for soft drop', () => {
     const score = calculateScore('softDrop', 1, 5);
-    expect(score).toBe(5); // 1 point per cell
+    expect(score).toBe(0); // No score for soft drop
   });
 
   it('should calculate score for hard drop', () => {
     const score = calculateScore('hardDrop', 1, 10);
-    expect(score).toBe(20); // 2 points per cell
+    expect(score).toBe(0); // No score for hard drop
   });
 
   it('should calculate score for line clears', () => {
@@ -42,47 +42,46 @@ describe('calculateScore', () => {
 
   it('should handle level 0', () => {
     expect(calculateScore('lineClear', 0, 1)).toBe(0); // No score at level 0
-    expect(calculateScore('place', 0, 0)).toBe(10); // Placement still gives points
+    expect(calculateScore('place', 0, 0)).toBe(0); // No score for placement
   });
 });
 
 describe('calculateLevel', () => {
   it('should start at level 1', () => {
     expect(calculateLevel(0)).toBe(1);
-    expect(calculateLevel(5)).toBe(1);
-    expect(calculateLevel(9)).toBe(1);
+    expect(calculateLevel(4)).toBe(1);
   });
 
-  it('should increase every 10 lines', () => {
-    expect(calculateLevel(10)).toBe(2);
-    expect(calculateLevel(19)).toBe(2);
-    expect(calculateLevel(20)).toBe(3);
-    expect(calculateLevel(99)).toBe(10);
-    expect(calculateLevel(100)).toBe(11);
+  it('should increase every 5 lines', () => {
+    expect(calculateLevel(5)).toBe(2);
+    expect(calculateLevel(9)).toBe(2);
+    expect(calculateLevel(10)).toBe(3);
+    expect(calculateLevel(25)).toBe(6);
+    expect(calculateLevel(50)).toBe(11);
   });
 
-  it('should cap at level 20', () => {
-    expect(calculateLevel(190)).toBe(20);
-    expect(calculateLevel(200)).toBe(20);
-    expect(calculateLevel(1000)).toBe(20);
+  it('should cap at level 99', () => {
+    expect(calculateLevel(490)).toBe(99);
+    expect(calculateLevel(500)).toBe(99);
+    expect(calculateLevel(1000)).toBe(99);
   });
 });
 
 describe('getDropInterval', () => {
   it('should calculate drop interval based on level', () => {
-    expect(getDropInterval(1)).toBe(100); // 1000 / (1 + 9) = 100
-    expect(getDropInterval(2)).toBe(91); // 1000 / (2 + 9) ≈ 91
-    expect(getDropInterval(5)).toBe(71); // 1000 / (5 + 9) ≈ 71
-    expect(getDropInterval(10)).toBe(53); // 1000 / (10 + 9) ≈ 53
+    expect(getDropInterval(1)).toBe(400); // Base 400ms
+    expect(getDropInterval(2)).toBe(320); // 400 * 0.80
+    expect(getDropInterval(5)).toBe(164); // 400 * 0.80^4
+    expect(getDropInterval(10)).toBe(54); // 400 * 0.80^9
   });
 
   it('should handle high levels', () => {
-    expect(getDropInterval(20)).toBe(34); // 1000 / (20 + 9) ≈ 34
-    expect(getDropInterval(25)).toBe(34); // Capped at level 20
+    expect(getDropInterval(30)).toBe(50); // Capped at level 30, min 50ms
+    expect(getDropInterval(50)).toBe(50); // Min interval
   });
 
   it('should handle level 0', () => {
-    expect(getDropInterval(0)).toBe(111); // 1000 / (0 + 9) ≈ 111
+    expect(getDropInterval(0)).toBe(500); // Special case for level 0
   });
 });
 
@@ -364,9 +363,9 @@ describe('calculatePPS', () => {
 
 describe('getScoreForAction', () => {
   it('should return correct scores for actions', () => {
-    expect(getScoreForAction('place')).toBe(10);
-    expect(getScoreForAction('softDrop')).toBe(1);
-    expect(getScoreForAction('hardDrop')).toBe(2);
+    expect(getScoreForAction('place')).toBe(0); // No score for placement
+    expect(getScoreForAction('softDrop')).toBe(0); // No score for soft drop
+    expect(getScoreForAction('hardDrop')).toBe(0); // No score for hard drop
   });
 
   it('should return line clear base scores', () => {

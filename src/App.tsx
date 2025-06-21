@@ -76,7 +76,7 @@ export const App: React.FC = () => {
   const [gameLoop, setGameLoop] = useState<GameLoop | null>(null);
   const [currentScreen, setCurrentScreen] = useState<AppScreen>('main');
   const [availablePieces, setAvailablePieces] = useState<any[]>([]);
-  const [polyominoSize, setPolyominoSize] = useState<3 | 4 | 5 | 6 | 7 | 8 | 9>(DEFAULT_GAME_CONFIG.polyominoSize);
+  const [polyominoSize, setPolyominoSize] = useState<3 | 4 | 5 | 6 | 7>(DEFAULT_GAME_CONFIG.polyominoSize);
   
   // Settings state
   const [colorSchemeName, setColorSchemeName] = useState<ColorSchemeName>('gruvbox');
@@ -1214,7 +1214,7 @@ export const App: React.FC = () => {
             </label>
             <select
               value={polyominoSize}
-              onChange={(e) => setPolyominoSize(parseInt(e.target.value) as 3 | 4 | 5 | 6 | 7 | 8 | 9)}
+              onChange={(e) => setPolyominoSize(parseInt(e.target.value) as 3 | 4 | 5 | 6 | 7)}
               style={{
                 backgroundColor: colorScheme.colors.ui.button,
                 color: colorScheme.colors.text,
@@ -1231,8 +1231,6 @@ export const App: React.FC = () => {
               <option value="5">Pentomino (5)</option>
               <option value="6">Hexomino (6)</option>
               <option value="7">Heptomino (7)</option>
-              <option value="8">Octomino (8)</option>
-              <option value="9">Nonomino (9)</option>
             </select>
           </div>
         )}

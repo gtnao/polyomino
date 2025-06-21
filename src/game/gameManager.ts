@@ -72,7 +72,7 @@ export function calculatePieceColors(numPieces: number, baseColors: string[]): s
 }
 
 export interface GameManagerConfig {
-  polyominoSize?: 3 | 4 | 5 | 6 | 7 | 8 | 9;
+  polyominoSize?: 3 | 4 | 5 | 6 | 7;
   boardWidth?: number;
   boardHeight?: number;
   startLevel?: number;
@@ -239,6 +239,7 @@ export function createGameManager(
     ? createWeightedBag(pieceDefinitions)
     : createBag(polyominoes.map(p => p.id));
   let nextPieces: Polyomino[] = [];
+  let pieceQueue: string[] = []; // Pre-selected pieces queue
   let canHold = true;
   
   // Ghost piece cache to avoid redundant calculations
@@ -274,7 +275,7 @@ export function createGameManager(
       gameplay: {
         initialDropInterval: 1000,
         softDropMultiplier: 20,
-        lockDelay: 500,
+        lockDelay: 300, // Reduced from 500ms for faster gameplay
         maxLockResets: 15,
         dasDelay: 133,
         dasInterval: 33,
@@ -320,58 +321,55 @@ export function createGameManager(
   }
 
   /**
+   * Fills the piece queue with enough pieces
+   */
+  function fillPieceQueue(): void {
+    const targetSize = gameState.config.features.nextPieceCount + 1; // +1 for the current piece
+    
+    while (pieceQueue.length < targetSize) {
+      if (isWeightedBag) {
+        // Use weighted bag system
+        const result = getNextWeightedPiece(pieceBag as WeightedPieceBag);
+        pieceQueue.push(result.piece);
+        pieceBag = result.bag;
+      } else {
+        // Use regular bag system
+        const regularBag = pieceBag as PieceBag;
+        const result = getNextPiece(regularBag, polyominoes.map(p => p.id));
+        pieceQueue.push(result.piece);
+        pieceBag = result.bag;
+        
+        // Refill bag if needed
+        if (result.bag.pieces.length < targetSize) {
+          const newBag = createBag(polyominoes.map(p => p.id));
+          pieceBag = {
+            pieces: [...result.bag.pieces, ...newBag.pieces]
+          };
+        }
+      }
+    }
+  }
+
+  /**
    * Spawns a new piece
    */
   function spawnPiece(): void {
-    let pieceId: string;
+    // Ensure queue has enough pieces
+    fillPieceQueue();
     
-    if (isWeightedBag) {
-      // Use weighted bag system
-      const result = getNextWeightedPiece(pieceBag as WeightedPieceBag);
-      pieceId = result.piece;
-      pieceBag = result.bag;
-    } else {
-      // Use regular bag system
-      const regularBag = pieceBag as PieceBag;
-      const result = getNextPiece(regularBag, polyominoes.map(p => p.id));
-      pieceId = result.piece;
-      pieceBag = result.bag;
-      
-      // Refill bag if needed (ensure we have enough for next pieces)
-      if (result.bag.pieces.length < gameState.config.features.nextPieceCount) {
-        const newBag = createBag(polyominoes.map(p => p.id));
-        pieceBag = {
-          pieces: [...result.bag.pieces, ...newBag.pieces]
-        };
-      }
-    }
+    // Take the first piece from queue
+    const pieceId = pieceQueue.shift();
+    if (!pieceId) {return;}
     
     const polyomino = polyominoes.find(p => p.id === pieceId);
     if (!polyomino) {return;}
 
-    // Update next pieces
+    // Update next pieces from queue
     nextPieces = [];
-    if (isWeightedBag) {
-      // For weighted bag, generate preview pieces on demand
-      // Important: We need to update the bag state after each preview generation
-      let currentBag = pieceBag as WeightedPieceBag;
-      for (let i = 0; i < gameState.config.features.nextPieceCount; i++) {
-        const previewResult = getNextWeightedPiece(currentBag);
-        const next = polyominoes.find(p => p.id === previewResult.piece);
-        if (next) {nextPieces.push(next);}
-        // Update the bag for the next preview
-        currentBag = previewResult.bag;
-      }
-      // Update the actual piece bag with the final state after all previews
-      pieceBag = currentBag;
-    } else {
-      // For regular bag, use the actual next pieces
-      const regularBag = pieceBag as PieceBag;
-      for (let i = 0; i < gameState.config.features.nextPieceCount; i++) {
-        const nextId = regularBag.pieces[i];
-        const next = polyominoes.find(p => p.id === nextId);
-        if (next) {nextPieces.push(next);}
-      }
+    for (let i = 0; i < gameState.config.features.nextPieceCount && i < pieceQueue.length; i++) {
+      const nextId = pieceQueue[i];
+      const next = polyominoes.find(p => p.id === nextId);
+      if (next) {nextPieces.push(next);}
     }
 
     const spawnPosition: Coordinate = [
@@ -549,10 +547,9 @@ export function createGameManager(
     if (!gameState.currentPiece) {return;}
 
     const ghostPosition = getGhostPosition(gameState.board, gameState.currentPiece.shape, gameState.currentPiece.position);
-    const dropDistance = ghostPosition[1] - gameState.currentPiece.position[1];
     
     gameState.currentPiece = { ...gameState.currentPiece, position: ghostPosition };
-    gameState.stats.score += calculateScore('hardDrop', dropDistance, gameState.stats.level);
+    // Remove score for hard drop
     gameState.stats = updateStats(gameState.stats, 'hardDrop', {});
     
     placePieceOnBoard();
@@ -565,7 +562,7 @@ export function createGameManager(
     if (!gameState.currentPiece) {return;}
 
     if (tryMovePiece('down')) {
-      gameState.stats.score += calculateScore('softDrop', 1, gameState.stats.level);
+      // Remove score for soft drop
       gameState.stats = updateStats(gameState.stats, 'softDrop', { distance: 1 });
     }
   }
@@ -608,6 +605,7 @@ export function createGameManager(
       pieceBag = isWeightedBag
         ? createWeightedBag(pieceDefinitions)
         : createBag(polyominoes.map(p => p.id));
+      pieceQueue = []; // Reset queue
       dropTimer = 0;
       canHold = true;
       
@@ -643,6 +641,7 @@ export function createGameManager(
       pieceBag = isWeightedBag
         ? createWeightedBag(pieceDefinitions)
         : createBag(polyominoes.map(p => p.id));
+      pieceQueue = []; // Reset queue
       dropTimer = 0;
       canHold = true;
       

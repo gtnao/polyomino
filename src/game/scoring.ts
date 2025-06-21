@@ -13,13 +13,13 @@ export type StatAction = 'piecePlaced' | 'linesCleared' | 'move' | 'rotate' | 'h
 export function calculateScore(action: ScoreAction, level: number, value: number): number {
   switch (action) {
     case 'place':
-      return 10;
+      return 0; // No score for just placing
     
     case 'softDrop':
-      return value * 1; // 1 point per cell
+      return 0; // No score for soft drop
     
     case 'hardDrop':
-      return value * 2; // 2 points per cell
+      return 0; // No score for hard drop
     
     case 'lineClear': {
       const baseScore = getLineClearScore(value);
@@ -185,13 +185,13 @@ export function calculatePPS(stats: GameStats): number {
 export function getScoreForAction(action: string, value?: number): number {
   switch (action) {
     case 'place':
-      return 10;
+      return 0; // No score for just placing
     
     case 'softDrop':
-      return 1;
+      return 0; // No score for soft drop
     
     case 'hardDrop':
-      return 2;
+      return 0; // No score for hard drop
     
     case 'lineClear':
       return getLineClearScore(value || 0);
