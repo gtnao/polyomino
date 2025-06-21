@@ -61,9 +61,9 @@ export const HoldDisplay: React.FC<HoldDisplayProps> = ({
     const offsetX = Math.floor((canvasSize - width) / 2) - minX;
     const offsetY = Math.floor((canvasSize - height) / 2) - minY;
 
-    // Get polyomino color based on colorIndex
+    // Get polyomino color - use predefined color if available
     const colorIndex = heldPiece.colorIndex || 0;
-    const color = getPieceColor(colorScheme, colorIndex);
+    const color = heldPiece.color || getPieceColor(colorScheme, colorIndex);
 
     // Draw the polyomino cells
     heldPiece.cells.forEach((cell: number[]) => {

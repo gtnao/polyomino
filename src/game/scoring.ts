@@ -63,11 +63,11 @@ export function calculateLevel(lines: number): number {
  * @returns Drop interval in milliseconds
  */
 export function getDropInterval(level: number): number {
-  // Base interval at level 1 is ~1000ms
-  // Drops faster each level, with diminishing returns at higher levels
-  const baseInterval = 1000;
-  const speedMultiplier = Math.pow(0.95, level - 1); // 5% faster each level
-  const minInterval = 50; // Cap at 50ms (20 drops per second)
+  // Base interval at level 1 is 500ms (much faster default)
+  // Drops significantly faster each level for noticeable progression
+  const baseInterval = 500;
+  const speedMultiplier = Math.pow(0.85, level - 1); // 15% faster each level (more noticeable)
+  const minInterval = 30; // Cap at 30ms (33 drops per second)
   
   return Math.max(Math.round(baseInterval * speedMultiplier), minInterval);
 }

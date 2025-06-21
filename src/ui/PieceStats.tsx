@@ -107,7 +107,7 @@ export const PieceStats: React.FC<PieceStatsProps> = ({
             y={(y - minY) * cellSize}
             width={cellSize - 1}
             height={cellSize - 1}
-            fill={colors.pieces[colorIndex % colors.pieces.length]}
+            fill={piece.color || colors.pieces[colorIndex % colors.pieces.length]}
             stroke={colors.grid}
             strokeWidth={0.5}
           />

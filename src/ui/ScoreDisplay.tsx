@@ -138,22 +138,60 @@ export const ScoreDisplay: React.FC<ScoreDisplayProps> = ({
 
   const apm = calculateAPM(stats);
   const pps = calculatePPS(stats);
+  
+  // Calculate progress - simple and correct
+  const linesInCurrentLevel = stats.lines % 5;
+  const progressPercentage = (linesInCurrentLevel / 5) * 100;
+  const linesToNext = 5 - linesInCurrentLevel;
+  
+  // Check if current score is a new high score
+  const isNewHighScore = highScore !== undefined && stats.score > highScore && highScore > 0;
 
   return (
-    <div
-      className={className}
-      data-testid="score-display"
-      style={containerStyle}
-    >
-      <StatItem
-        {...(showLabels && { label: 'Score' })}
-        value={formatNumber(stats.score)}
-        testId="score-value"
-        colorScheme={colorScheme}
-        size="large"
-      />
+    <>
+      {isNewHighScore && (
+        <style>
+          {`
+            @keyframes pulse {
+              0% { transform: scale(1); opacity: 1; }
+              50% { transform: scale(1.1); opacity: 0.8; }
+              100% { transform: scale(1); opacity: 1; }
+            }
+          `}
+        </style>
+      )}
+      <div
+        className={className}
+        data-testid="score-display"
+        style={containerStyle}
+      >
+        <div style={{ position: 'relative' }}>
+        <StatItem
+          {...(showLabels && { label: 'Score' })}
+          value={formatNumber(stats.score)}
+          testId="score-value"
+          colorScheme={colorScheme}
+          size="large"
+        />
+        {highScore !== undefined && stats.score > highScore && highScore > 0 && (
+          <div style={{
+            position: 'absolute',
+            top: '-20px',
+            right: '-10px',
+            backgroundColor: colorScheme.colors.pieces[0] || '#ff6b6b',
+            color: colorScheme.colors.background,
+            padding: '2px 6px',
+            borderRadius: '4px',
+            fontSize: '12px',
+            fontWeight: 'bold',
+            animation: 'pulse 1s ease-in-out infinite',
+          }}>
+            NEW HIGH!
+          </div>
+        )}
+      </div>
       
-      <div>
+      <div style={{ minWidth: '80px' }}>
         <StatItem
           {...(showLabels && { label: 'Level' })}
           value={stats.level.toString()}
@@ -164,17 +202,25 @@ export const ScoreDisplay: React.FC<ScoreDisplayProps> = ({
         <div style={{ marginTop: '4px' }}>
           <div style={{
             width: '100%',
-            height: '4px',
+            height: '8px',
             backgroundColor: colorScheme.colors.ui.border,
-            borderRadius: '2px',
+            borderRadius: '4px',
             overflow: 'hidden',
+            position: 'relative',
           }}>
-            <div style={{
-              width: `${((stats.lines % 5) / 5) * 100}%`,
-              height: '100%',
-              backgroundColor: colorScheme.colors.ui.buttonHover,
-              transition: 'width 0.3s ease',
-            }} />
+            <div 
+              data-testid="level-progress-bar"
+              style={{
+                width: `${progressPercentage}%`,
+                height: '100%',
+                backgroundColor: colorScheme.colors.pieces[0] || colorScheme.colors.ui.buttonHover,
+                transition: 'width 0.3s ease-out',
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                boxShadow: progressPercentage > 0 ? '0 0 4px rgba(255,255,255,0.3)' : 'none',
+              }} 
+            />
           </div>
           <div style={{
             fontSize: '10px',
@@ -182,7 +228,7 @@ export const ScoreDisplay: React.FC<ScoreDisplayProps> = ({
             marginTop: '2px',
             textAlign: 'center',
           }}>
-            {5 - (stats.lines % 5)} to next
+            {linesToNext} to next
           </div>
         </div>
       </div>
@@ -229,6 +275,7 @@ export const ScoreDisplay: React.FC<ScoreDisplayProps> = ({
           />
         </>
       )}
-    </div>
+      </div>
+    </>
   );
 };

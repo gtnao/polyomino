@@ -113,8 +113,11 @@ export const AudioSettings: React.FC<AudioSettingsProps> = ({
         ]}
         colorScheme={colorScheme}
       />
+      <h2 style={{
+        ...titleStyle,
+        marginBottom: '20px',
+      }}>Audio</h2>
       <div style={panelStyle}>
-        <h2 style={titleStyle}>Audio Settings</h2>
         
         <div style={settingStyle}>
           <label style={labelStyle}>

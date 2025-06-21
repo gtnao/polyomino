@@ -92,7 +92,6 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   const menuItems = [
     { id: 'audio', label: 'Audio', action: () => setCurrentView('audio'), icon: 'audio' as const },
     { id: 'graphics', label: 'Graphics', action: () => setCurrentView('graphics'), icon: 'palette' as const },
-    { id: 'back', label: 'Back', action: onBack, icon: 'back' as const },
   ];
 
   return (
@@ -131,6 +130,31 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         items={menuItems}
         colorScheme={colorScheme}
       />
+      
+      <button
+        style={{
+          backgroundColor: 'transparent',
+          color: colorScheme.colors.textSecondary,
+          border: 'none',
+          borderRadius: '4px',
+          padding: '10px 20px',
+          fontSize: '16px',
+          fontFamily: 'monospace',
+          cursor: 'pointer',
+          marginTop: '30px',
+          transition: 'color 0.2s ease',
+          textDecoration: 'underline',
+        }}
+        onClick={onBack}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.color = colorScheme.colors.text;
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.color = colorScheme.colors.textSecondary;
+        }}
+      >
+        ← Back
+      </button>
     </div>
   );
 };

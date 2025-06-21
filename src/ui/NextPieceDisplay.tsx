@@ -59,9 +59,9 @@ const PiecePreview: React.FC<{
     const offsetX = Math.floor((canvasSize - width) / 2) - minX;
     const offsetY = Math.floor((canvasSize - height) / 2) - minY;
 
-    // Get polyomino color based on colorIndex
+    // Get polyomino color - use predefined color if available
     const colorIndex = polyomino.colorIndex || 0;
-    const color = getPieceColor(colorScheme, colorIndex);
+    const color = polyomino.color || getPieceColor(colorScheme, colorIndex);
 
     // Draw the polyomino cells
     polyomino.cells.forEach((cell: number[]) => {

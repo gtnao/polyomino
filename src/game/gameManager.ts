@@ -15,7 +15,6 @@ import type {
   Board,
   ColorSchemeName,
 } from './types';
-import { generatePolyominoes } from '../polyomino/generator';
 import { createEmptyBoard, placePiece, getFilledLines, clearLines } from './board';
 import { checkCollision } from './collision';
 import { calculateScore, calculateLevel, getDropInterval, updateStats } from './scoring';
@@ -23,7 +22,53 @@ import { createBag, getNextPiece } from './bag';
 import { initLockDelay, updateLockDelay, shouldLockPiece, resetLockDelay } from './lockDelay';
 import { getColorScheme } from '../rendering/colorSchemes';
 import { rotateShape, getKickOffsets } from './rotation';
-import { getColorVariation } from '../rendering/colorUtils';
+import { getPieceDefinitions } from '../polyomino/shapes';
+import { adjustBrightness, adjustSaturation } from '../rendering/colorUtils';
+
+/**
+ * Calculate distinct colors for pieces, using variations when needed
+ */
+export function calculatePieceColors(numPieces: number, baseColors: string[]): string[] {
+  const colors: string[] = [];
+  const numBaseColors = baseColors.length;
+  
+  for (let i = 0; i < numPieces; i++) {
+    if (i < numBaseColors && baseColors[i]) {
+      // Use base colors directly for the first pieces
+      colors.push(baseColors[i]!);
+    } else {
+      // Apply variations for additional pieces
+      const baseIndex = i % numBaseColors;
+      const baseColor = baseColors[baseIndex] || '#888888';
+      const variationLevel = Math.floor(i / numBaseColors);
+      
+      // Apply different variations based on the level
+      let variedColor = baseColor;
+      if (variationLevel === 1) {
+        // First round of variations: make darker
+        variedColor = adjustBrightness(baseColor, -25);
+      } else if (variationLevel === 2) {
+        // Second round: make lighter
+        variedColor = adjustBrightness(baseColor, 25);
+      } else if (variationLevel === 3) {
+        // Third round: adjust saturation down
+        variedColor = adjustSaturation(baseColor, -30);
+      } else if (variationLevel === 4) {
+        // Fourth round: adjust saturation up
+        variedColor = adjustSaturation(baseColor, 30);
+      } else {
+        // Further rounds: combine adjustments
+        const brightAdjust = (variationLevel % 2 === 0) ? 20 : -20;
+        const satAdjust = (variationLevel % 3 === 0) ? 25 : -25;
+        variedColor = adjustSaturation(adjustBrightness(baseColor, brightAdjust), satAdjust);
+      }
+      
+      colors.push(variedColor);
+    }
+  }
+  
+  return colors;
+}
 
 export interface GameManagerConfig {
   polyominoSize?: 4 | 5 | 6 | 7 | 8 | 9;
@@ -80,14 +125,10 @@ function createPiece(
   shape: PolyominoShape,
   position: Coordinate,
   rotation: number = 0,
-  colorIndex: number = 0,
-  colorScheme: ColorSchemeName = 'gruvbox'
+  predefinedColor?: string
 ): ActivePiece {
-  const theme = getColorScheme(colorScheme);
-  const pieceColors = theme.colors.pieces;
-  const baseColor = pieceColors[colorIndex % pieceColors.length];
-  // Apply color variation based on piece ID
-  const actualColor = baseColor ? getColorVariation(baseColor, id, colorIndex) : '#888888';
+  // Use predefined color if provided (from polyomino with variations)
+  const actualColor = predefinedColor || '#888888';
   
   return {
     type: id,
@@ -169,14 +210,23 @@ export function createGameManager(
 ): GameManager {
   const finalConfig = { ...DEFAULT_CONFIG, ...config };
   
-  // Generate polyominoes for the specified size
-  const polyominoShapes = generatePolyominoes(finalConfig.polyominoSize);
-  const polyominoes: Polyomino[] = polyominoShapes.map((shape, index) => ({
-    id: `piece_${index}`,
-    cells: shape.map(coord => [coord[0], coord[1]]),
-    rotations: 4,
-    shape: shape, // Add shape property
-    colorIndex: index, // Add color index for color mapping
+  // Get piece definitions for the specified size
+  const pieceDefinitions = getPieceDefinitions(finalConfig.polyominoSize);
+  
+  // Get theme colors
+  const theme = getColorScheme(finalConfig.theme?.colorScheme || 'gruvbox');
+  const baseColors = theme.colors.pieces;
+  
+  // Calculate piece colors with variations for larger sets
+  const pieceColors = calculatePieceColors(pieceDefinitions.length, baseColors);
+  
+  const polyominoes: Polyomino[] = pieceDefinitions.map((def, index) => ({
+    id: def.id,
+    cells: def.shape.map(coord => [coord[0], coord[1]]),
+    rotations: def.rotations.length,
+    shape: def.shape,
+    colorIndex: index,
+    color: pieceColors[index] || '#888888', // Pre-calculated color with fallback
   }));
   
   let gameState: GameState = createInitialGameState(finalConfig, polyominoes);
@@ -295,7 +345,7 @@ export function createGameManager(
       0,
     ];
 
-    const newPiece = createPiece(polyomino.id, polyomino.shape!, spawnPosition, 0, polyomino.colorIndex, gameState.config.theme.colorScheme);
+    const newPiece = createPiece(polyomino.id, polyomino.shape!, spawnPosition, 0, polyomino.color);
 
     // Check if spawn position is valid
     if (checkCollision(gameState.board, newPiece.shape, newPiece.position)) {
@@ -380,6 +430,10 @@ export function createGameManager(
       if (newLevel > gameState.stats.level) {
         gameState.stats.level = newLevel;
         events.onLevelUp?.(newLevel);
+        
+        // Log the new drop speed for debugging
+        const newInterval = getDropInterval(newLevel);
+        console.log(`[Level Up] Level ${newLevel}, Drop interval: ${newInterval}ms`);
       }
       
       events.onLineClear?.(filledLines);
@@ -503,7 +557,7 @@ export function createGameManager(
         0,
       ];
       
-      gameState.currentPiece = createPiece(gameState.heldPiece.id, gameState.heldPiece.shape!, spawnPosition, 0, gameState.heldPiece.colorIndex, gameState.config.theme.colorScheme);
+      gameState.currentPiece = createPiece(gameState.heldPiece.id, gameState.heldPiece.shape!, spawnPosition, 0, gameState.heldPiece.color);
       gameState.heldPiece = currentPolyomino;
     } else {
       // Hold current piece and spawn new one
@@ -524,6 +578,10 @@ export function createGameManager(
       pieceBag = createBag(polyominoes.map(p => p.id));
       dropTimer = 0;
       canHold = true;
+      
+      // Log initial drop speed
+      const initialInterval = getDropInterval(gameState.stats.level);
+      console.log(`[Game Start] Level ${gameState.stats.level}, Drop interval: ${initialInterval}ms`);
       
       spawnPiece();
       events.onGameStart?.();

@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import type { GameState, GameAction, ColorScheme, AppScreen, ColorSchemeName } from './game/types';
-import { createGameManager, GameManager } from './game/gameManager';
+import { createGameManager, GameManager, calculatePieceColors } from './game/gameManager';
 import { createGameLoop, GameLoop } from './game/gameLoop';
 import { getColorScheme } from './rendering/colorSchemes';
 import { createStorageAdapter } from './storage/storageAdapter';
 import { SaveManager } from './storage/saveManager';
-import { generatePolyominoes } from './polyomino/generator';
+import { getPieceDefinitions } from './polyomino/shapes';
 import { SoundManager } from './audio/soundManager';
 import { VisualEffectsManager } from './effects/visualEffects';
 import {
@@ -21,7 +21,7 @@ import {
   KeyBindingsDisplay,
   Icon,
 } from './ui';
-import { PolyominoSizeSelector } from './ui/PolyominoSizeSelector';
+import { FaviconIcon } from './ui/FaviconIcon';
 
 // Default game configuration
 const DEFAULT_GAME_CONFIG = {
@@ -334,15 +334,16 @@ export const App: React.FC = () => {
     setGameLoop(loop);
     setGameState(manager.getGameState());
     
-    // Generate polyominoes to get available pieces
-    // This is a temporary solution - ideally we'd get this from the game manager
-    const polyominoShapes = generatePolyominoes(polyominoSize);
-    const pieces = polyominoShapes.map((shape, index) => ({
-      id: `piece_${index}`,
-      cells: shape.map(coord => [coord[0], coord[1]]),
-      rotations: 4,
-      shape: shape,
+    // Get piece definitions to get available pieces
+    const pieceDefinitions = getPieceDefinitions(polyominoSize);
+    const pieceColors = calculatePieceColors(pieceDefinitions.length, colorScheme.colors.pieces);
+    const pieces = pieceDefinitions.map((def, index) => ({
+      id: def.id,
+      cells: def.shape.map(coord => [coord[0], coord[1]]),
+      rotations: def.rotations.length,
+      shape: def.shape,
       colorIndex: index,
+      color: pieceColors[index], // Use calculated color with variations
     }));
     setAvailablePieces(pieces);
 
@@ -934,21 +935,6 @@ export const App: React.FC = () => {
               colorScheme={colorScheme}
               showTitle
             />
-            <PolyominoSizeSelector
-              size={polyominoSize}
-              onChange={setPolyominoSize}
-              colorScheme={colorScheme}
-              disabled={gameState.status === 'playing' || gameState.status === 'paused'}
-            />
-          </div>
-        }
-        rightSidebar={
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <NextPieceDisplay
-              nextPieces={gameState.nextPieces}
-              colorScheme={colorScheme}
-              showTitle
-            />
             <div style={{
               padding: '10px',
               backgroundColor: colorScheme.colors.ui.panel,
@@ -972,6 +958,15 @@ export const App: React.FC = () => {
                 {polyominoSize}
               </div>
             </div>
+          </div>
+        }
+        rightSidebar={
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <NextPieceDisplay
+              nextPieces={gameState.nextPieces}
+              colorScheme={colorScheme}
+              showTitle
+            />
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <button
                 style={{
@@ -1097,40 +1092,46 @@ export const App: React.FC = () => {
           fontSize: '48px',
           marginBottom: '40px',
           fontFamily: 'monospace',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '16px',
         }}>
+          <FaviconIcon size={48} />
           Polyomino
         </h1>
         
         {gameState.status === 'gameover' && (
           <div style={{ 
-            marginBottom: '40px',
-            padding: '30px',
+            marginBottom: '30px',
+            padding: '20px',
             backgroundColor: `${colorScheme.colors.ui.panel}cc`,
             borderRadius: '8px',
-            border: `2px solid ${colorScheme.colors.effects.gameOver}`,
+            border: `2px solid ${colorScheme.colors.ui.border}`,
           }}>
             <h2 style={{
-              fontSize: '48px',
+              fontSize: '28px',
               color: colorScheme.colors.effects.gameOver,
-              marginBottom: '20px',
-              textTransform: 'uppercase',
-              letterSpacing: '2px',
+              marginBottom: '16px',
+              fontWeight: 'bold',
             }}>Game Over</h2>
             <p style={{
-              fontSize: '36px',
+              fontSize: '24px',
               color: colorScheme.colors.text,
-              marginBottom: '15px',
+              marginBottom: '12px',
               fontWeight: 'bold',
-            }}>Final Score: {gameState.stats.score.toLocaleString()}</p>
-            <p style={{
-              fontSize: '20px',
+            }}>Score: {gameState.stats.score.toLocaleString()}</p>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'center',
+              gap: '20px',
+              fontSize: '16px',
               color: colorScheme.colors.textSecondary,
-              marginBottom: '5px',
-            }}>Level: {gameState.stats.level}</p>
-            <p style={{
-              fontSize: '20px',
-              color: colorScheme.colors.textSecondary,
-            }}>Lines: {gameState.stats.lines}</p>
+            }}>
+              <span>Level: {gameState.stats.level}</span>
+              <span>•</span>
+              <span>Lines: {gameState.stats.lines}</span>
+            </div>
           </div>
         )}
 
@@ -1139,6 +1140,44 @@ export const App: React.FC = () => {
           colorScheme={colorScheme}
           title=""
         />
+        
+        {gameState?.status === 'ready' && (
+          <div style={{ 
+            marginTop: '30px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '10px',
+          }}>
+            <label style={{ 
+              color: colorScheme.colors.text,
+              fontSize: '16px',
+            }}>
+              Polyomino Size:
+            </label>
+            <select
+              value={polyominoSize}
+              onChange={(e) => setPolyominoSize(parseInt(e.target.value) as 4 | 5 | 6 | 7 | 8 | 9)}
+              style={{
+                backgroundColor: colorScheme.colors.ui.button,
+                color: colorScheme.colors.text,
+                border: `2px solid ${colorScheme.colors.ui.border}`,
+                borderRadius: '4px',
+                padding: '5px 10px',
+                fontSize: '16px',
+                fontFamily: 'monospace',
+                cursor: 'pointer',
+              }}
+            >
+              <option value="4">Tetromino (4)</option>
+              <option value="5">Pentomino (5)</option>
+              <option value="6">Hexomino (6)</option>
+              <option value="7">Heptomino (7)</option>
+              <option value="8">Octomino (8)</option>
+              <option value="9">Nonomino (9)</option>
+            </select>
+          </div>
+        )}
       </div>
     </GameLayout>
   );

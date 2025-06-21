@@ -14,15 +14,15 @@ const gruvbox: ColorScheme = {
     textSecondary: '#a89984',
     ghost: 'rgba(168, 153, 132, 0.3)',
     pieces: [
-      '#fb4934', // red
-      '#b8bb26', // green
-      '#fabd2f', // yellow
-      '#83a598', // blue
-      '#d3869b', // purple
-      '#8ec07c', // aqua
-      '#fe8019', // orange
-      '#ebdbb2', // light
-      '#928374', // gray
+      '#83a598', // cyan/light blue (I-piece)
+      '#fabd2f', // yellow (O-piece)
+      '#d3869b', // purple (T-piece)
+      '#b8bb26', // green (S-piece)
+      '#fb4934', // red (Z-piece)
+      '#458588', // blue (J-piece)
+      '#fe8019', // orange (L-piece)
+      '#8ec07c', // extra aqua
+      '#ebdbb2', // extra light
     ],
     ui: {
       panel: '#3c3836',
@@ -52,15 +52,15 @@ const monokai: ColorScheme = {
     textSecondary: '#75715e',
     ghost: 'rgba(117, 113, 94, 0.3)',
     pieces: [
-      '#f92672', // pink
-      '#a6e22e', // green
-      '#f4bf75', // yellow
-      '#66d9ef', // cyan
-      '#ae81ff', // purple
-      '#fd971f', // orange
-      '#e69f66', // light orange
-      '#f8f8f2', // white
-      '#75715e', // gray
+      '#66d9ef', // cyan (I-piece)
+      '#f4bf75', // yellow (O-piece)
+      '#ae81ff', // purple (T-piece)
+      '#a6e22e', // green (S-piece)
+      '#f92672', // red/pink (Z-piece)
+      '#268bd2', // blue (J-piece)
+      '#fd971f', // orange (L-piece)
+      '#e69f66', // extra light orange
+      '#f8f8f2', // extra white
     ],
     ui: {
       panel: '#3e3d32',
@@ -90,15 +90,15 @@ const dracula: ColorScheme = {
     textSecondary: '#6272a4',
     ghost: 'rgba(98, 114, 164, 0.3)',
     pieces: [
-      '#ff5555', // red
-      '#50fa7b', // green
-      '#f1fa8c', // yellow
-      '#8be9fd', // cyan
-      '#bd93f9', // purple
-      '#ff79c6', // pink
-      '#ffb86c', // orange
-      '#f8f8f2', // white
-      '#6272a4', // comment
+      '#8be9fd', // cyan (I-piece)
+      '#f1fa8c', // yellow (O-piece)
+      '#bd93f9', // purple (T-piece)
+      '#50fa7b', // green (S-piece)
+      '#ff5555', // red (Z-piece)
+      '#6272a4', // blue (J-piece)
+      '#ffb86c', // orange (L-piece)
+      '#ff79c6', // extra pink
+      '#f8f8f2', // extra white
     ],
     ui: {
       panel: '#44475a',
@@ -128,15 +128,15 @@ const nord: ColorScheme = {
     textSecondary: '#d8dee9',
     ghost: 'rgba(216, 222, 233, 0.3)',
     pieces: [
-      '#bf616a', // red
-      '#a3be8c', // green
-      '#ebcb8b', // yellow
-      '#88c0d0', // cyan
-      '#b48ead', // purple
-      '#d08770', // orange
-      '#8fbcbb', // teal
-      '#eceff4', // white
-      '#4c566a', // gray
+      '#88c0d0', // cyan (I-piece)
+      '#ebcb8b', // yellow (O-piece)
+      '#b48ead', // purple (T-piece)
+      '#a3be8c', // green (S-piece)
+      '#bf616a', // red (Z-piece)
+      '#5e81ac', // blue (J-piece)
+      '#d08770', // orange (L-piece)
+      '#8fbcbb', // extra teal
+      '#eceff4', // extra white
     ],
     ui: {
       panel: '#3b4252',
@@ -166,15 +166,15 @@ const solarized: ColorScheme = {
     textSecondary: '#93a1a1',
     ghost: 'rgba(147, 161, 161, 0.3)',
     pieces: [
-      '#dc322f', // red
-      '#859900', // green
-      '#b58900', // yellow
-      '#268bd2', // blue
-      '#6c71c4', // violet
-      '#2aa198', // cyan
-      '#cb4b16', // orange
-      '#fdf6e3', // light
-      '#657b83', // gray
+      '#2aa198', // cyan (I-piece)
+      '#b58900', // yellow (O-piece)
+      '#6c71c4', // violet/purple (T-piece)
+      '#859900', // green (S-piece)
+      '#dc322f', // red (Z-piece)
+      '#268bd2', // blue (J-piece)
+      '#cb4b16', // orange (L-piece)
+      '#fdf6e3', // extra light
+      '#657b83', // extra gray
     ],
     ui: {
       panel: '#073642',
@@ -204,15 +204,15 @@ const tokyoNight: ColorScheme = {
     textSecondary: '#9aa5ce',
     ghost: 'rgba(154, 165, 206, 0.3)',
     pieces: [
-      '#f7768e', // red
-      '#9ece6a', // green
-      '#e0af68', // yellow
-      '#7aa2f7', // blue
-      '#bb9af7', // purple
-      '#7dcfff', // cyan
-      '#ff9e64', // orange
-      '#c0caf5', // light
-      '#565f89', // gray
+      '#7dcfff', // cyan (I-piece)
+      '#e0af68', // yellow (O-piece)
+      '#bb9af7', // purple (T-piece)
+      '#9ece6a', // green (S-piece)
+      '#f7768e', // red (Z-piece)
+      '#7aa2f7', // blue (J-piece)
+      '#ff9e64', // orange (L-piece)
+      '#c0caf5', // extra light
+      '#565f89', // extra gray
     ],
     ui: {
       panel: '#24283b',

@@ -15,6 +15,7 @@ export interface Polyomino {
   rotations: number;
   shape?: PolyominoShape; // For game logic
   colorIndex?: number; // Index for color mapping
+  color?: string; // Predefined color from piece definitions
 }
 
 // ピースタイプ（動的生成のため文字列ID）
