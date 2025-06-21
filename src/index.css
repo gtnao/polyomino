@@ -1,0 +1,54 @@
+/* Global styles for the Polyomino game */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  font-family: 'Courier New', monospace;
+  background-color: #1a1a1a;
+  color: #ffffff;
+  overflow: hidden;
+}
+
+#root {
+  height: 100%;
+  width: 100%;
+}
+
+/* Disable text selection for game elements */
+.game-container {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .game-layout {
+    flex-direction: column !important;
+  }
+  
+  .sidebar {
+    max-width: none !important;
+    min-width: auto !important;
+  }
+}
+
+/* Focus styles for accessibility */
+button:focus,
+.menu-item:focus {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
+}
+
+/* Canvas styles */
+canvas {
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+}
