@@ -6,6 +6,7 @@ export default defineConfig({
   plugins: [react()],
   root: '.',
   publicDir: 'public',
+  base: '/polyomino/', // GitHub repository name
   build: {
     outDir: 'dist',
     emptyOutDir: true,

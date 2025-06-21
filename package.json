@@ -11,7 +11,9 @@
     "coverage": "vitest --coverage",
     "lint": "eslint src --ext .ts",
     "typecheck": "tsc --noEmit",
-    "format": "prettier --write src/**/*.ts"
+    "format": "prettier --write src/**/*.ts",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d dist"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.6.3",
