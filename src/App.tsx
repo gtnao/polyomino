@@ -127,6 +127,10 @@ export const App: React.FC = () => {
       if (config.audio?.musicEnabled !== undefined) {
         setMusicEnabled(config.audio.musicEnabled);
         soundManager.setMusicEnabled(config.audio.musicEnabled);
+        // Ensure music player is properly initialized with saved setting
+        if (config.audio.musicEnabled) {
+          soundManager.setMusicEnabled(true);
+        }
       }
       if (config.audio?.effectVolume !== undefined) {
         setEffectVolume(config.audio.effectVolume);
@@ -365,15 +369,14 @@ export const App: React.FC = () => {
     if (gameManager && gameLoop) {
       gameManager.startGame();
       gameLoop.start();
-      // Play game music with a small delay to ensure proper initialization
+      // Play game music - the user interaction of clicking start game allows audio to play
       void soundManager.stopMusic();
       if (musicEnabled) {
-        setTimeout(() => {
-          void soundManager.playGameMusic(gameState?.stats.level || 1);
-        }, 100);
+        // Ensure audio context is initialized with user interaction
+        void soundManager.playGameMusic(1);
       }
     }
-  }, [gameManager, gameLoop, soundManager, gameState, musicEnabled]);
+  }, [gameManager, gameLoop, soundManager, musicEnabled]);
 
   const pauseGame = useCallback(() => {
     if (gameManager && gameLoop) {
@@ -398,12 +401,10 @@ export const App: React.FC = () => {
       if (!gameLoop.isRunning()) {
         gameLoop.start();
       }
-      // Restart game music if enabled
+      // Restart game music if enabled - user interaction allows audio
       void soundManager.stopMusic();
       if (musicEnabled) {
-        setTimeout(() => {
-          void soundManager.playGameMusic(1);
-        }, 100);
+        void soundManager.playGameMusic(1);
       }
     }
   }, [gameManager, gameLoop, soundManager, musicEnabled]);
@@ -1060,14 +1061,15 @@ export const App: React.FC = () => {
                   fontFamily: 'monospace',
                   cursor: 'pointer',
                 }}
-                onClick={() => {
+                onClick={async () => {
                   const newEnabled = !musicEnabled;
                   setMusicEnabled(newEnabled);
                   soundManager.setMusicEnabled(newEnabled);
                   if (newEnabled && gameState.status === 'playing') {
-                    void soundManager.playGameMusic(gameState.stats.level);
+                    // User click initializes audio context
+                    await soundManager.playGameMusic(gameState.stats.level);
                   } else {
-                    void soundManager.stopMusic();
+                    await soundManager.stopMusic();
                   }
                 }}
                 onMouseEnter={(e) => {

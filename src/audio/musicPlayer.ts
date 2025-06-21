@@ -52,7 +52,7 @@ export function createMusicTrack(options: {
  * Music player for background music
  */
 export class MusicPlayer {
-  private enabled = false;
+  private enabled = true;
   private volume = 0.3;
   private currentTrack: MusicTrack | null = null;
   private playing = false;

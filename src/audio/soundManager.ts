@@ -37,6 +37,10 @@ export class SoundManager {
     // Initialize on first user interaction
     this.musicPlayer = new MusicPlayer();
     this.musicPlayer.setVolume(this.musicVolume);
+    // Enable music player by default if musicEnabled is true
+    if (this.musicEnabled) {
+      this.musicPlayer.enable();
+    }
   }
   
   private async ensureInitialized(): Promise<void> {
