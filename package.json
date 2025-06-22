@@ -23,7 +23,7 @@
     "@testing-library/user-event": "^14.6.1",
     "@types/jsdom": "^21.1.7",
     "@types/node": "^20.11.0",
-    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.34.1",
     "@typescript-eslint/parser": "^7.0.0",
     "@vitejs/plugin-react": "^4.5.2",
     "@vitest/coverage-v8": "^1.2.0",
