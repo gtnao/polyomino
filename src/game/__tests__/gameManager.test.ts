@@ -40,6 +40,60 @@ vi.mock('../../polyomino/generator', () => ({
   generatePolyominoes: vi.fn(() => [
     [[0, 0], [1, 0]] // Simple shape
   ]),
+  normalizePolyomino: vi.fn((shape) => shape),
+  getAllRotations: vi.fn((shape) => [shape]),
+  getBoundingBox: vi.fn(() => ({ minX: 0, minY: 0, maxX: 1, maxY: 0 })),
+}));
+
+vi.mock('../../polyomino/shapes', () => ({
+  getPieceDefinitions: vi.fn(() => [
+    {
+      id: 'test1',
+      shape: [[0, 0], [1, 0]],
+      rotations: [[[0, 0], [1, 0]]],
+      color: '#ff0000',
+      boundingBox: { minX: 0, minY: 0, maxX: 1, maxY: 0 },
+    },
+    {
+      id: 'test2',
+      shape: [[0, 0], [0, 1]],
+      rotations: [[[0, 0], [0, 1]]],
+      color: '#00ff00',
+      boundingBox: { minX: 0, minY: 0, maxX: 0, maxY: 1 },
+    },
+  ]),
+}));
+
+vi.mock('../../polyomino/hardcodedShapes', () => ({
+  getHardcodedPieces: vi.fn(() => [
+    { name: 'test1', shape: [[0, 0], [1, 0]], weight: 1 },
+    { name: 'test2', shape: [[0, 0], [0, 1]], weight: 1 },
+  ]),
+}));
+
+vi.mock('../weightedBag', () => ({
+  createWeightedBag: vi.fn(() => ({ pieces: ['test1', 'test2'] })),
+  getNextWeightedPiece: vi.fn(() => ({ piece: 'test1', bag: { pieces: ['test2'] } })),
+}));
+
+vi.mock('../rotation', () => ({
+  rotateShape: vi.fn((shape) => shape),
+  getKickOffsets: vi.fn(() => [[0, 0]]),
+}));
+
+vi.mock('../piece', () => ({
+  createPiece: vi.fn((type, x, y) => ({
+    type,
+    shape: [[0, 0], [1, 0]],
+    rotation: 0,
+    color: '#ff0000',
+    x,
+    y,
+  })),
+  movePiece: vi.fn((piece, dx, dy) => ({ ...piece, x: piece.x + dx, y: piece.y + dy })),
+  rotatePiece: vi.fn((piece) => piece),
+  getPieceCells: vi.fn(() => [[0, 0], [1, 0]]),
+  isPositionValid: vi.fn(() => true),
 }));
 
 describe('GameManager', () => {

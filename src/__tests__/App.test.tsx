@@ -18,6 +18,11 @@ vi.mock('../game/gameManager', () => ({
         boardDimensions: { width: 10, height: 20 },
         features: { ghostPieceEnabled: true, holdEnabled: true, nextPieceCount: 5 },
         polyominoSize: 5,
+        rendering: {
+          cellSize: 30,
+          gridLineWidth: 1,
+          animationDuration: 300,
+        },
       },
       board: [],
       currentPiece: null,
@@ -36,10 +41,19 @@ vi.mock('../game/gameManager', () => ({
         softDropDistance: 0,
         gameStartTime: Date.now(),
         gameEndTime: null,
+        pieceCounts: {},
       },
       lastUpdateTime: Date.now(),
     })),
   })),
+  calculatePieceColors: vi.fn((numPieces, baseColors) => {
+    // Simple mock implementation
+    const colors = [];
+    for (let i = 0; i < numPieces; i++) {
+      colors.push(baseColors[i % baseColors.length] || '#888888');
+    }
+    return colors;
+  }),
 }));
 
 vi.mock('../game/gameLoop', () => ({
@@ -107,6 +121,42 @@ vi.mock('../polyomino/generator', () => ({
     [[0, 0], [1, 0], [0, 1], [1, 1], [2, 1]],
     [[0, 0], [1, 0], [2, 0], [3, 0], [1, 1]],
   ]),
+  normalizePolyomino: vi.fn((shape) => shape),
+  getAllRotations: vi.fn((shape) => [shape]),
+  getBoundingBox: vi.fn(() => ({ minX: 0, minY: 0, maxX: 2, maxY: 2 })),
+}))
+
+vi.mock('../polyomino/hardcodedShapes', () => ({
+  getHardcodedPieces: vi.fn(() => [
+    { name: 'I', shape: [[0, 0], [1, 0], [2, 0], [3, 0]], weight: 1 },
+    { name: 'O', shape: [[0, 0], [1, 0], [0, 1], [1, 1]], weight: 1 },
+    { name: 'T', shape: [[0, 0], [1, 0], [2, 0], [1, 1]], weight: 1 },
+  ]),
+}))
+
+vi.mock('../audio/soundManager', () => ({
+  SoundManager: vi.fn().mockImplementation(() => ({
+    setEnabled: vi.fn(),
+    setMusicEnabled: vi.fn(),
+    setVolume: vi.fn(),
+    setMusicVolume: vi.fn(),
+    setSelectedTrack: vi.fn(),
+    playSound: vi.fn(() => Promise.resolve()),
+    playGameMusic: vi.fn(() => Promise.resolve()),
+    playGameOverMusic: vi.fn(() => Promise.resolve()),
+    stopMusic: vi.fn(() => Promise.resolve()),
+    pause: vi.fn(),
+    resume: vi.fn(() => Promise.resolve()),
+    updateMusicTempo: vi.fn(() => Promise.resolve()),
+  })),
+}))
+
+vi.mock('../effects/visualEffects', () => ({
+  VisualEffectsManager: vi.fn().mockImplementation(() => ({
+    setEnabled: vi.fn(),
+    addLineClearEffect: vi.fn(),
+    addLevelUpEffect: vi.fn(),
+  })),
 }))
 
 // Mock individual UI components to avoid hooks issues

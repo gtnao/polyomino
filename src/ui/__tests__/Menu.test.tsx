@@ -92,12 +92,12 @@ describe('Menu', () => {
     // Note: backgroundColor might be in rgb format
     expect(startItem.style.backgroundColor).toBeTruthy();
     expect(startItem.style.backgroundColor).not.toBe('transparent');
-    expect(startItem.style.fontWeight).toBe('bold');
+    expect(startItem.style.transform).toBe('scale(1.02)');
     
     // Test mouse leave
     fireEvent.mouseLeave(startItem);
     expect(startItem.style.backgroundColor).toBe('transparent');
-    expect(startItem.style.fontWeight).toBe('normal');
+    expect(startItem.style.transform).toBe('scale(1)');
   });
 
   it('should apply custom className', () => {

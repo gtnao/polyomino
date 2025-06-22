@@ -68,15 +68,15 @@ describe('SettingsScreen', () => {
   it('should render all settings menu items', () => {
     render(<SettingsScreen {...mockProps} />);
 
-    expect(screen.getByText('Audio Settings')).toBeInTheDocument();
+    expect(screen.getByText('Audio')).toBeInTheDocument();
     expect(screen.getByText('Graphics')).toBeInTheDocument();
-    expect(screen.getByText('Back')).toBeInTheDocument();
+    expect(screen.getByText('← Back')).toBeInTheDocument();
   });
 
   it('should call onBack when Back is clicked', () => {
     render(<SettingsScreen {...mockProps} />);
 
-    fireEvent.click(screen.getByText('Back'));
+    fireEvent.click(screen.getByText('← Back'));
     expect(mockOnBack).toHaveBeenCalledTimes(1);
   });
 

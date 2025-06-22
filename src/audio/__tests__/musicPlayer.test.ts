@@ -108,8 +108,8 @@ describe('MusicPlayer', () => {
     player.stop();
   });
 
-  it('should initialize with disabled state', () => {
-    expect(player.isEnabled()).toBe(false);
+  it('should initialize with enabled state', () => {
+    expect(player.isEnabled()).toBe(true);
     expect(player.getVolume()).toBe(0.3);
     expect(player.isPlaying()).toBe(false);
   });
@@ -160,6 +160,7 @@ describe('MusicPlayer', () => {
       notes: [{ frequency: 440, duration: 0.5, time: 0, volume: 0.8 }],
     });
 
+    player.disable(); // Disable first since it's enabled by default
     player.play(track);
 
     expect(player.isPlaying()).toBe(false);

@@ -66,7 +66,8 @@ describe('HighScoresScreen', () => {
       />
     );
 
-    expect(screen.getByText('High Scores')).toBeInTheDocument();
+    // Use getByRole to specifically target the h1 element
+    expect(screen.getByRole('heading', { level: 1, name: 'High Scores' })).toBeInTheDocument();
   });
 
   it('should render column headers', () => {
@@ -129,7 +130,7 @@ describe('HighScoresScreen', () => {
       />
     );
 
-    fireEvent.click(screen.getByText('Back to Main Menu'));
+    fireEvent.click(screen.getByText('← Back'));
     expect(mockOnBack).toHaveBeenCalledTimes(1);
   });
 

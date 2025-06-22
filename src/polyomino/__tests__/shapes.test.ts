@@ -91,7 +91,7 @@ describe('polyomino shapes', () => {
       3: 2,   // trominoes
       4: 5,   // tetrominoes (free)
       5: 12,  // pentominoes (free)
-      6: 35,  // hexominoes (free)
+      6: 15,  // hexominoes (hardcoded subset, not all 35)
     };
 
     it('should generate correct number of pieces for each size', () => {
