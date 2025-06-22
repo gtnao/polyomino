@@ -93,8 +93,8 @@ export class MusicPlayer {
   setVolume(volume: number): void {
     this.volume = Math.max(0, Math.min(1, volume));
     if (this.masterGain) {
-      // Apply 0.033x multiplier to music volume (1/3 of previous 0.1x)
-      setGainValue(this.masterGain, this.volume * 0.033);
+      // Apply 0.011x multiplier to music volume (1/3 of previous 0.033x)
+      setGainValue(this.masterGain, this.volume * 0.011);
     }
   }
 
@@ -126,8 +126,8 @@ export class MusicPlayer {
     this.originalTempo = track.tempo;
 
     // Create master gain with greatly reduced volume to prevent distortion
-    // Apply 0.033x multiplier to music volume (1/3 of previous 0.1x)
-    this.masterGain = createGainNode(this.volume * 0.033);
+    // Apply 0.011x multiplier to music volume (1/3 of previous 0.033x)
+    this.masterGain = createGainNode(this.volume * 0.011);
     connectNodes(this.masterGain, getAudioContext().destination);
 
     this.scheduleNextNotes();
@@ -257,8 +257,8 @@ export class MusicPlayer {
     
     // Recreate master gain if needed
     if (!this.masterGain) {
-      // Apply 0.033x multiplier to music volume (1/3 of previous 0.1x)
-      this.masterGain = createGainNode(this.volume * 0.033);
+      // Apply 0.011x multiplier to music volume (1/3 of previous 0.033x)
+      this.masterGain = createGainNode(this.volume * 0.011);
       connectNodes(this.masterGain, getAudioContext().destination);
     }
     
