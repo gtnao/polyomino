@@ -12,8 +12,10 @@
     "lint": "eslint src --ext .ts",
     "typecheck": "tsc --noEmit",
     "format": "prettier --write src/**/*.ts",
+    "format:check": "prettier --check src/**/*.ts",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d dist"
+    "deploy": "gh-pages -d dist",
+    "ci": "npm run lint && npm run typecheck && npm test -- --run"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.6.3",

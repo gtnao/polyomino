@@ -110,7 +110,7 @@ describe('SoundManager', () => {
       
       expect(soundEffects.playSoundEffect).toHaveBeenCalledWith(
         { type: 'move' },
-        0.7 * 0.5 // volume * multiplier
+        0.7 * 0.333 // volume * multiplier
       );
     });
 
@@ -119,7 +119,7 @@ describe('SoundManager', () => {
       
       expect(soundEffects.playSoundEffect).toHaveBeenCalledWith(
         { type: 'rotate' },
-        0.7 * 0.6
+        0.7 * 0.4
       );
     });
 
@@ -128,26 +128,26 @@ describe('SoundManager', () => {
       
       expect(soundEffects.playSoundEffect).toHaveBeenCalledWith(
         { type: 'place' },
-        0.7 * 0.7
+        0.7 * 0.467
       );
     });
 
     it('should play line clear sound', async () => {
       await soundManager.playSound('lineClear');
       
-      expect(improvedSoundEffects.playImprovedLineClearSFX).toHaveBeenCalledWith(1, 0.7 * 0.9);
+      expect(improvedSoundEffects.playImprovedLineClearSFX).toHaveBeenCalledWith(1, 0.7 * 0.6);
     });
 
     it('should play level up sound', async () => {
       await soundManager.playSound('levelUp');
       
-      expect(improvedSoundEffects.playImprovedLevelUpSFX).toHaveBeenCalledWith(0.7 * 1.0);
+      expect(improvedSoundEffects.playImprovedLevelUpSFX).toHaveBeenCalledWith(0.7 * 0.667);
     });
 
     it('should play game over sound', async () => {
       await soundManager.playSound('gameOver');
       
-      expect(improvedSoundEffects.playImprovedGameOverSFX).toHaveBeenCalledWith(0.7 * 0.6);
+      expect(improvedSoundEffects.playImprovedGameOverSFX).toHaveBeenCalledWith(0.7 * 0.4);
     });
 
     it('should not play sounds when disabled', async () => {
@@ -169,7 +169,7 @@ describe('SoundManager', () => {
       
       expect(soundEffects.playSoundEffect).toHaveBeenCalledWith(
         { type: 'move' },
-        0.5 * 0.5
+        0.5 * 0.333
       );
     });
 

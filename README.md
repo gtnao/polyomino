@@ -67,6 +67,13 @@ npm run build
 npm run deploy
 ```
 
+## Documentation
+
+- **[Documentation Index](docs/INDEX.md)** - Navigate all documentation
+- **[Gameplay Guide](GAMEPLAY.md)** - Detailed mechanics and strategies
+- **[Architecture](ARCHITECTURE.md)** - Technical design and structure
+- **[Development Guide](CLAUDE.md)** - Setup, commands, and workflows
+
 ## Technologies
 
 - **React 18** - UI framework
