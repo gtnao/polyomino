@@ -90,7 +90,7 @@ export class SoundManager {
         case 'move': {
           const moveSound = this.soundEffects.get('pieceMove');
           if (moveSound) {
-            playSoundEffect(moveSound, this.volume * 0.5);
+            playSoundEffect(moveSound, this.volume * 0.333); // 0.5 * 2/3
           }
           break;
         }
@@ -98,7 +98,7 @@ export class SoundManager {
         case 'rotate': {
           const rotateSound = this.soundEffects.get('pieceRotate');
           if (rotateSound) {
-            playSoundEffect(rotateSound, this.volume * 0.6);
+            playSoundEffect(rotateSound, this.volume * 0.4); // 0.6 * 2/3
           }
           break;
         }
@@ -107,35 +107,35 @@ export class SoundManager {
         case 'place': {
           const placeSound = this.soundEffects.get('piecePlace');
           if (placeSound) {
-            playSoundEffect(placeSound, this.volume * 0.7);
+            playSoundEffect(placeSound, this.volume * 0.467); // 0.7 * 2/3
           }
           break;
         }
           
         case 'lineClear':
-          playImprovedLineClearSFX(1, this.volume * 0.9);
+          playImprovedLineClearSFX(1, this.volume * 0.6); // 0.9 * 2/3
           break;
           
         case 'levelUp':
-          playImprovedLevelUpSFX(this.volume * 1.0);
+          playImprovedLevelUpSFX(this.volume * 0.667); // 1.0 * 2/3
           break;
           
         case 'gameOver':
-          playImprovedGameOverSFX(this.volume * 0.6);
+          playImprovedGameOverSFX(this.volume * 0.4); // 0.6 * 2/3
           break;
           
         case 'hardDrop':
-          playHardDropSFX(10, this.volume * 0.6);
+          playHardDropSFX(10, this.volume * 0.4); // 0.6 * 2/3
           break;
           
         case 'hold':
-          playHoldPieceSFX(this.volume * 0.5);
+          playHoldPieceSFX(this.volume * 0.333); // 0.5 * 2/3
           break;
           
         case 'menuSelect': {
           const selectSound = this.soundEffects.get('menuSelect');
           if (selectSound) {
-            playSoundEffect(selectSound, this.volume * 0.5);
+            playSoundEffect(selectSound, this.volume * 0.333); // 0.5 * 2/3
           }
           break;
         }
@@ -143,7 +143,7 @@ export class SoundManager {
         case 'menuBack': {
           const backSound = this.soundEffects.get('menuBack');
           if (backSound) {
-            playSoundEffect(backSound, this.volume * 0.5);
+            playSoundEffect(backSound, this.volume * 0.333); // 0.5 * 2/3
           }
           break;
         }
