@@ -59,37 +59,18 @@ export const TETROMINOES: WeightedPolyomino[] = [
   },
 ];
 
-// Pentomino (5) - 12種類（標準ペントミノ）
+// Pentomino (5) - 18種類（テトリス用：回転のみで鏡像含む）
 export const PENTOMINOES: WeightedPolyomino[] = [
-  {
-    name: 'F',
-    shape: [[1, 0], [2, 0], [0, 1], [1, 1], [1, 2]] as PolyominoShape,
-    weight: 9,
-  },
+  // 対称形（鏡像不要）
   {
     name: 'I',
     shape: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0]] as PolyominoShape,
-    weight: 12, // 少し高め
-  },
-  {
-    name: 'L',
-    shape: [[0, 0], [0, 1], [0, 2], [0, 3], [1, 3]] as PolyominoShape,
-    weight: 10,
-  },
-  {
-    name: 'N',
-    shape: [[1, 0], [1, 1], [0, 1], [0, 2], [0, 3]] as PolyominoShape,
-    weight: 10,
-  },
-  {
-    name: 'P',
-    shape: [[0, 0], [1, 0], [0, 1], [1, 1], [0, 2]] as PolyominoShape,
-    weight: 10,
+    weight: 12,
   },
   {
     name: 'T',
     shape: [[0, 0], [1, 0], [2, 0], [1, 1], [1, 2]] as PolyominoShape,
-    weight: 11, // 使いやすい
+    weight: 11,
   },
   {
     name: 'U',
@@ -109,7 +90,48 @@ export const PENTOMINOES: WeightedPolyomino[] = [
   {
     name: 'X',
     shape: [[1, 0], [0, 1], [1, 1], [2, 1], [1, 2]] as PolyominoShape,
-    weight: 11, // 十字型は使いやすい
+    weight: 11,
+  },
+  // 非対称形ペア
+  {
+    name: 'F',
+    shape: [[1, 0], [2, 0], [0, 1], [1, 1], [1, 2]] as PolyominoShape,
+    weight: 9,
+  },
+  {
+    name: 'F2',
+    shape: [[0, 0], [1, 0], [1, 1], [2, 1], [1, 2]] as PolyominoShape,
+    weight: 9,
+  },
+  {
+    name: 'L',
+    shape: [[0, 0], [0, 1], [0, 2], [0, 3], [1, 3]] as PolyominoShape,
+    weight: 10,
+  },
+  {
+    name: 'J',
+    shape: [[1, 0], [1, 1], [1, 2], [1, 3], [0, 3]] as PolyominoShape,
+    weight: 10,
+  },
+  {
+    name: 'N',
+    shape: [[1, 0], [1, 1], [0, 1], [0, 2], [0, 3]] as PolyominoShape,
+    weight: 10,
+  },
+  {
+    name: 'N2',
+    shape: [[0, 0], [0, 1], [1, 1], [1, 2], [1, 3]] as PolyominoShape,
+    weight: 10,
+  },
+  {
+    name: 'P',
+    shape: [[0, 0], [1, 0], [0, 1], [1, 1], [0, 2]] as PolyominoShape,
+    weight: 10,
+  },
+  {
+    name: 'Q',
+    shape: [[0, 0], [1, 0], [0, 1], [1, 1], [1, 2]] as PolyominoShape,
+    weight: 10,
   },
   {
     name: 'Y',
@@ -117,8 +139,18 @@ export const PENTOMINOES: WeightedPolyomino[] = [
     weight: 10,
   },
   {
+    name: 'Y2',
+    shape: [[0, 0], [0, 1], [1, 1], [0, 2], [0, 3]] as PolyominoShape,
+    weight: 10,
+  },
+  {
     name: 'Z',
     shape: [[0, 0], [1, 0], [1, 1], [1, 2], [2, 2]] as PolyominoShape,
+    weight: 9,
+  },
+  {
+    name: 'S',
+    shape: [[1, 0], [2, 0], [0, 1], [1, 1], [0, 2]] as PolyominoShape,
     weight: 9,
   },
 ];
