@@ -78,7 +78,7 @@ export const PENTOMINOES: WeightedPolyomino[] = [
   },
   {
     name: 'N',
-    shape: [[0, 0], [0, 1], [1, 1], [1, 2], [1, 3]] as PolyominoShape,
+    shape: [[1, 0], [1, 1], [0, 1], [0, 2], [0, 3]] as PolyominoShape,
     weight: 10,
   },
   {
@@ -113,7 +113,7 @@ export const PENTOMINOES: WeightedPolyomino[] = [
   },
   {
     name: 'Y',
-    shape: [[0, 0], [1, 0], [1, 1], [1, 2], [2, 1]] as PolyominoShape,
+    shape: [[1, 0], [0, 1], [1, 1], [1, 2], [1, 3]] as PolyominoShape,
     weight: 10,
   },
   {
