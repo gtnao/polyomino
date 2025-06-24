@@ -59,14 +59,20 @@ export const TETROMINOES: WeightedPolyomino[] = [
   },
 ];
 
-// Pentomino (5) - 18種類（テトリス用：回転のみで鏡像含む）
+// Pentomino (5) - 17種類（テトリス用：真に必要な一方向ペントミノ）
 export const PENTOMINOES: WeightedPolyomino[] = [
-  // 対称形（鏡像不要）
+  // 180度回転対称を持つ（鏡像不要）
   {
     name: 'I',
     shape: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0]] as PolyominoShape,
     weight: 12,
   },
+  {
+    name: 'Z',
+    shape: [[0, 0], [1, 0], [1, 1], [1, 2], [2, 2]] as PolyominoShape,
+    weight: 9,
+  },
+  // 反射対称を持つ（鏡像不要）
   {
     name: 'T',
     shape: [[0, 0], [1, 0], [2, 0], [1, 1], [1, 2]] as PolyominoShape,
@@ -77,22 +83,13 @@ export const PENTOMINOES: WeightedPolyomino[] = [
     shape: [[0, 0], [2, 0], [0, 1], [1, 1], [2, 1]] as PolyominoShape,
     weight: 10,
   },
-  {
-    name: 'V',
-    shape: [[0, 0], [0, 1], [0, 2], [1, 2], [2, 2]] as PolyominoShape,
-    weight: 10,
-  },
-  {
-    name: 'W',
-    shape: [[0, 0], [0, 1], [1, 1], [1, 2], [2, 2]] as PolyominoShape,
-    weight: 9,
-  },
+  // 90度回転対称を持つ（鏡像不要）
   {
     name: 'X',
     shape: [[1, 0], [0, 1], [1, 1], [2, 1], [1, 2]] as PolyominoShape,
     weight: 11,
   },
-  // 非対称形ペア
+  // 完全に非対称（鏡像必要）
   {
     name: 'F',
     shape: [[1, 0], [2, 0], [0, 1], [1, 1], [1, 2]] as PolyominoShape,
@@ -144,13 +141,13 @@ export const PENTOMINOES: WeightedPolyomino[] = [
     weight: 10,
   },
   {
-    name: 'Z',
-    shape: [[0, 0], [1, 0], [1, 1], [1, 2], [2, 2]] as PolyominoShape,
-    weight: 9,
+    name: 'V',
+    shape: [[0, 0], [0, 1], [0, 2], [1, 2], [2, 2]] as PolyominoShape,
+    weight: 10,
   },
   {
-    name: 'S',
-    shape: [[1, 0], [2, 0], [0, 1], [1, 1], [0, 2]] as PolyominoShape,
+    name: 'W',
+    shape: [[0, 0], [0, 1], [1, 1], [1, 2], [2, 2]] as PolyominoShape,
     weight: 9,
   },
 ];
