@@ -95,9 +95,19 @@ export function renderCell(
     cellSize - padding * 2
   );
   
-  // Draw border if requested
+  // Always draw a darker border for better visibility
+  ctx.globalAlpha = 1;
+  ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(
+    pixelX + padding,
+    pixelY + padding,
+    cellSize - padding * 2,
+    cellSize - padding * 2
+  );
+  
+  // Draw additional border if requested
   if (border) {
-    ctx.globalAlpha = 1;
     ctx.strokeStyle = theme.colors.grid;
     ctx.lineWidth = gridLineWidth;
     ctx.strokeRect(pixelX, pixelY, cellSize, cellSize);
