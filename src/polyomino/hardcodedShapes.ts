@@ -59,7 +59,7 @@ export const TETROMINOES: WeightedPolyomino[] = [
   },
 ];
 
-// Pentomino (5) - 12種類（代表的なものを選択）
+// Pentomino (5) - 18種類（全ての自由ペントミノ）
 export const PENTOMINOES: WeightedPolyomino[] = [
   {
     name: 'I5',
@@ -120,6 +120,37 @@ export const PENTOMINOES: WeightedPolyomino[] = [
     name: 'Z5',
     shape: [[0, 0], [1, 0], [1, 1], [1, 2], [2, 2]] as PolyominoShape,
     weight: 9,
+  },
+  // 追加の6種類
+  {
+    name: 'S5',
+    shape: [[1, 0], [2, 0], [0, 1], [1, 1], [0, 2]] as PolyominoShape,
+    weight: 9,
+  },
+  {
+    name: 'J5',
+    shape: [[1, 0], [1, 1], [1, 2], [1, 3], [0, 3]] as PolyominoShape,
+    weight: 10,
+  },
+  {
+    name: 'R',
+    shape: [[1, 0], [0, 1], [1, 1], [2, 1], [1, 2]] as PolyominoShape,
+    weight: 10,
+  },
+  {
+    name: 'Q',
+    shape: [[0, 0], [1, 0], [1, 1], [2, 1], [2, 2]] as PolyominoShape,
+    weight: 9,
+  },
+  {
+    name: 'B', // ユーザーが例示した形状1
+    shape: [[0, 0], [0, 1], [1, 1], [1, 2], [1, 3]] as PolyominoShape,
+    weight: 8,
+  },
+  {
+    name: 'G', // ユーザーが例示した形状2
+    shape: [[1, 0], [0, 1], [1, 1], [0, 2], [0, 3]] as PolyominoShape,
+    weight: 8,
   },
 ];
 
