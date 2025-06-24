@@ -59,13 +59,32 @@ export const TETROMINOES: WeightedPolyomino[] = [
   },
 ];
 
-// Pentomino (5) - 18種類（テトリス用に鏡像も含む）
+// Pentomino (5) - 12種類（標準ペントミノ）
 export const PENTOMINOES: WeightedPolyomino[] = [
-  // 対称形（鏡像不要）
+  {
+    name: 'F',
+    shape: [[1, 0], [2, 0], [0, 1], [1, 1], [1, 2]] as PolyominoShape,
+    weight: 9,
+  },
   {
     name: 'I',
     shape: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0]] as PolyominoShape,
     weight: 12, // 少し高め
+  },
+  {
+    name: 'L',
+    shape: [[0, 0], [0, 1], [0, 2], [0, 3], [1, 3]] as PolyominoShape,
+    weight: 10,
+  },
+  {
+    name: 'N',
+    shape: [[0, 0], [0, 1], [1, 1], [1, 2], [1, 3]] as PolyominoShape,
+    weight: 10,
+  },
+  {
+    name: 'P',
+    shape: [[0, 0], [1, 0], [0, 1], [1, 1], [0, 2]] as PolyominoShape,
+    weight: 10,
   },
   {
     name: 'T',
@@ -92,65 +111,14 @@ export const PENTOMINOES: WeightedPolyomino[] = [
     shape: [[1, 0], [0, 1], [1, 1], [2, 1], [1, 2]] as PolyominoShape,
     weight: 11, // 十字型は使いやすい
   },
-  // 非対称形（鏡像も含む）
-  {
-    name: 'L',
-    shape: [[0, 0], [0, 1], [0, 2], [0, 3], [1, 3]] as PolyominoShape,
-    weight: 10,
-  },
-  {
-    name: 'J',
-    shape: [[1, 0], [1, 1], [1, 2], [1, 3], [0, 3]] as PolyominoShape,
-    weight: 10,
-  },
-  {
-    name: 'N',
-    shape: [[0, 0], [0, 1], [1, 1], [1, 2], [1, 3]] as PolyominoShape,
-    weight: 10,
-  },
-  {
-    name: 'N2',
-    shape: [[1, 0], [1, 1], [0, 1], [0, 2], [0, 3]] as PolyominoShape,
-    weight: 10,
-  },
-  {
-    name: 'P',
-    shape: [[0, 0], [1, 0], [0, 1], [1, 1], [0, 2]] as PolyominoShape,
-    weight: 10,
-  },
-  {
-    name: 'Q',
-    shape: [[0, 0], [1, 0], [0, 1], [1, 1], [1, 2]] as PolyominoShape,
-    weight: 10,
-  },
   {
     name: 'Y',
-    shape: [[0, 0], [1, 0], [1, 1], [1, 2], [2, 1]] as PolyominoShape,
+    shape: [[0, 1], [1, 0], [1, 1], [1, 2], [2, 1]] as PolyominoShape,
     weight: 10,
-  },
-  {
-    name: 'Y2',
-    shape: [[1, 0], [0, 1], [1, 1], [1, 2], [2, 0]] as PolyominoShape,
-    weight: 10,
-  },
-  {
-    name: 'F',
-    shape: [[1, 0], [2, 0], [0, 1], [1, 1], [1, 2]] as PolyominoShape,
-    weight: 9,
-  },
-  {
-    name: 'R',
-    shape: [[0, 0], [1, 0], [1, 1], [2, 1], [1, 2]] as PolyominoShape,
-    weight: 9,
   },
   {
     name: 'Z',
     shape: [[0, 0], [1, 0], [1, 1], [1, 2], [2, 2]] as PolyominoShape,
-    weight: 9,
-  },
-  {
-    name: 'S',
-    shape: [[1, 0], [2, 0], [0, 1], [1, 1], [0, 2]] as PolyominoShape,
     weight: 9,
   },
 ];
