@@ -172,13 +172,13 @@ export function renderGhost(context: RenderContext, ghost: GhostPiece): void {
  * @param context - The render context
  */
 export function renderGrid(context: RenderContext): void {
-  const { ctx, config, theme } = context;
+  const { ctx, config } = context;
   const { width, height } = config.boardDimensions;
   const { cellSize, gridLineWidth } = config.rendering;
   
-  ctx.strokeStyle = theme.colors.grid;
+  ctx.strokeStyle = '#000000';
   ctx.lineWidth = gridLineWidth;
-  ctx.globalAlpha = 0.3;
+  ctx.globalAlpha = 0.5;
   
   ctx.beginPath();
   
@@ -215,6 +215,14 @@ export function renderGame(
 ): void {
   // Clear canvas
   clearCanvas(context);
+  
+  // Draw board background
+  const { ctx, config, theme } = context;
+  const { width, height } = config.boardDimensions;
+  const { cellSize } = config.rendering;
+  
+  ctx.fillStyle = theme.colors.board;
+  ctx.fillRect(0, 0, width * cellSize, height * cellSize);
   
   // Render board
   renderBoard(context, board);

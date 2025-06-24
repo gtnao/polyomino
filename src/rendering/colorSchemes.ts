@@ -8,11 +8,11 @@ const gruvbox: ColorScheme = {
   name: 'gruvbox',
   colors: {
     background: '#282828',
-    board: '#3c3836',
+    board: '#f5f5f5',
     grid: '#504945',
     text: '#ebdbb2',
     textSecondary: '#a89984',
-    ghost: 'rgba(168, 153, 132, 0.3)',
+    ghost: 'rgba(100, 100, 100, 0.8)',
     pieces: [
       '#83a598', // cyan/light blue (I-piece)
       '#fabd2f', // yellow (O-piece)
@@ -46,11 +46,11 @@ const monokai: ColorScheme = {
   name: 'monokai',
   colors: {
     background: '#272822',
-    board: '#3e3d32',
+    board: '#f0f0f0',
     grid: '#524f3d',
     text: '#f8f8f2',
     textSecondary: '#75715e',
-    ghost: 'rgba(117, 113, 94, 0.3)',
+    ghost: 'rgba(80, 80, 80, 0.8)',
     pieces: [
       '#66d9ef', // cyan (I-piece)
       '#f4bf75', // yellow (O-piece)
@@ -84,11 +84,11 @@ const dracula: ColorScheme = {
   name: 'dracula',
   colors: {
     background: '#282a36',
-    board: '#44475a',
+    board: '#f8f8f8',
     grid: '#6272a4',
     text: '#f8f8f2',
     textSecondary: '#6272a4',
-    ghost: 'rgba(98, 114, 164, 0.3)',
+    ghost: 'rgba(90, 90, 90, 0.8)',
     pieces: [
       '#8be9fd', // cyan (I-piece)
       '#f1fa8c', // yellow (O-piece)
@@ -122,11 +122,11 @@ const nord: ColorScheme = {
   name: 'nord',
   colors: {
     background: '#2e3440',
-    board: '#3b4252',
+    board: '#fafafa',
     grid: '#434c5e',
     text: '#eceff4',
     textSecondary: '#d8dee9',
-    ghost: 'rgba(216, 222, 233, 0.3)',
+    ghost: 'rgba(85, 85, 85, 0.8)',
     pieces: [
       '#88c0d0', // cyan (I-piece)
       '#ebcb8b', // yellow (O-piece)
@@ -160,11 +160,11 @@ const solarized: ColorScheme = {
   name: 'solarized',
   colors: {
     background: '#002b36',
-    board: '#073642',
+    board: '#f2f2f2',
     grid: '#586e75',
     text: '#fdf6e3',
     textSecondary: '#93a1a1',
-    ghost: 'rgba(147, 161, 161, 0.3)',
+    ghost: 'rgba(95, 95, 95, 0.8)',
     pieces: [
       '#2aa198', // cyan (I-piece)
       '#b58900', // yellow (O-piece)
@@ -198,11 +198,11 @@ const tokyoNight: ColorScheme = {
   name: 'tokyo-night',
   colors: {
     background: '#1a1b26',
-    board: '#24283b',
+    board: '#efefef',
     grid: '#414868',
     text: '#c0caf5',
     textSecondary: '#9aa5ce',
-    ghost: 'rgba(154, 165, 206, 0.3)',
+    ghost: 'rgba(75, 75, 75, 0.8)',
     pieces: [
       '#7dcfff', // cyan (I-piece)
       '#e0af68', // yellow (O-piece)
