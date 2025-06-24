@@ -133,8 +133,8 @@ export const PENTOMINOES: WeightedPolyomino[] = [
     weight: 10,
   },
   {
-    name: 'R',
-    shape: [[1, 0], [0, 1], [1, 1], [2, 1], [1, 2]] as PolyominoShape,
+    name: 'R', // 正しい別の形状に変更
+    shape: [[0, 0], [1, 0], [2, 0], [0, 1], [0, 2]] as PolyominoShape,
     weight: 10,
   },
   {
@@ -143,8 +143,8 @@ export const PENTOMINOES: WeightedPolyomino[] = [
     weight: 9,
   },
   {
-    name: 'B', // ユーザーが例示した形状1
-    shape: [[0, 0], [0, 1], [1, 1], [1, 2], [1, 3]] as PolyominoShape,
+    name: 'B', // ユーザーが例示した形状1を正しい別の形に変更
+    shape: [[0, 0], [1, 0], [0, 1], [0, 2], [1, 2]] as PolyominoShape,
     weight: 8,
   },
   {
